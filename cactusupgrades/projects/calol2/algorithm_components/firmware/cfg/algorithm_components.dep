@@ -1,0 +1,31 @@
+# Dependency file updated at 12:22:04 on Thu 16 Oct 2014 
+
+# -------------------------------------------------
+?toolset=="ISE"? src ../cgn/*.xco
+?toolset=="Vivado"? src ../cgn/*/*.xci
+# -------------------------------------------------
+
+# -------------------------------------------------
+src top/MainProcessorTop.vhd
+
+src config/*.vhd
+src common/*.vhd
+src towers/*.vhd
+src e_gamma_tau/*.vhd
+src jets/*.vhd
+src rings/*.vhd
+
+src ../HexROMs/*.mif
+
+src links/LinksIn.vhd
+src links/LinksOut.vhd
+# -------------------------------------------------
+
+# -------------------------------------------------
+src top/DemuxTop.vhd
+src demux/*
+
+src links/DemuxLinksIn.vhd
+src links/DemuxLinksOut.vhd
+# -------------------------------------------------
+

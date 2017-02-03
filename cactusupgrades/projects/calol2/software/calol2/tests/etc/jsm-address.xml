@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<node>
+    <node id="payload" address="0x00000000" class="FunkyMiniBus">
+	    <node id="Instruction" address="0x0000" permission="w" />
+	    <node id="BusSize"     address="0x0800" permission="r" />
+	    <node id="InfoSpace"   address="0x1000" mode="incremental" size="2048" permission="r" />
+	    <node id="Data"        address="0x1800" mode="non-incremental" permission="rw" />
+	    <node id="Counters"    address="0x2000" mode="incremental" size="16" permission="r" />
+	</node>
+
+    <node id="IPB_0"        address="0x80000000" mode="incremental" size="8193" permission="rw" />    
+</node>

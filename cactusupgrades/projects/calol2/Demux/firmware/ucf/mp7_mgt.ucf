@@ -1,0 +1,135 @@
+# Datapath constraints
+
+INST "datapath/rgen[0].region/*" AREA_GROUP=quad_x1y8;
+INST "datapath/rgen[1].region/*" AREA_GROUP=quad_x1y7;
+INST "datapath/rgen[2].region/*" AREA_GROUP=quad_x1y6;
+INST "datapath/rgen[3].region/*" AREA_GROUP=quad_x1y5;
+INST "datapath/rgen[4].region/*" AREA_GROUP=quad_x1y4;
+INST "datapath/rgen[5].region/*" AREA_GROUP=quad_x1y3;
+INST "datapath/rgen[6].region/*" AREA_GROUP=quad_x1y2;
+INST "datapath/rgen[7].region/*" AREA_GROUP=quad_x1y1;
+INST "datapath/rgen[8].region/*" AREA_GROUP=quad_x1y0;
+INST "datapath/rgen[9].region/*" AREA_GROUP=quad_x0y0;
+INST "datapath/rgen[10].region/*" AREA_GROUP=quad_x0y1;
+INST "datapath/rgen[11].region/*" AREA_GROUP=quad_x0y2;
+INST "datapath/rgen[12].region/*" AREA_GROUP=quad_x0y3;
+INST "datapath/rgen[13].region/*" AREA_GROUP=quad_x0y4;
+INST "datapath/rgen[14].region/*" AREA_GROUP=quad_x0y5;
+INST "datapath/rgen[15].region/*" AREA_GROUP=quad_x0y6;
+INST "datapath/rgen[16].region/*" AREA_GROUP=quad_x0y7;
+INST "datapath/rgen[17].region/*" AREA_GROUP=quad_x0y8;
+# INST "datapath/rgen[18].region/*" AREA_GROUP=quad_x0y9;
+
+INST datapath/rgen[0].region/*/g_gt_instances[0]*/gthe2_i LOC=GTHE2_CHANNEL_X1Y35;
+INST datapath/rgen[0].region/*/g_gt_instances[1]*/gthe2_i LOC=GTHE2_CHANNEL_X1Y34;
+INST datapath/rgen[0].region/*/g_gt_instances[2]*/gthe2_i LOC=GTHE2_CHANNEL_X1Y33;
+INST datapath/rgen[0].region/*/g_gt_instances[3]*/gthe2_i LOC=GTHE2_CHANNEL_X1Y32;
+INST datapath/rgen[0].region/*/gthe2_common_i LOC=GTHE2_COMMON_X1Y8;
+
+INST datapath/rgen[1].region/*/g_gt_instances[0]*/gthe2_i LOC=GTHE2_CHANNEL_X1Y31;
+INST datapath/rgen[1].region/*/g_gt_instances[1]*/gthe2_i LOC=GTHE2_CHANNEL_X1Y30;
+INST datapath/rgen[1].region/*/g_gt_instances[2]*/gthe2_i LOC=GTHE2_CHANNEL_X1Y29;
+INST datapath/rgen[1].region/*/g_gt_instances[3]*/gthe2_i LOC=GTHE2_CHANNEL_X1Y28;
+INST datapath/rgen[1].region/*/gthe2_common_i LOC=GTHE2_COMMON_X1Y7;
+ 
+INST datapath/rgen[2].region/*/g_gt_instances[0]*/gthe2_i LOC=GTHE2_CHANNEL_X1Y27;
+INST datapath/rgen[2].region/*/g_gt_instances[1]*/gthe2_i LOC=GTHE2_CHANNEL_X1Y26;
+INST datapath/rgen[2].region/*/g_gt_instances[2]*/gthe2_i LOC=GTHE2_CHANNEL_X1Y25;
+INST datapath/rgen[2].region/*/g_gt_instances[3]*/gthe2_i LOC=GTHE2_CHANNEL_X1Y24;
+INST datapath/rgen[2].region/*/gthe2_common_i LOC=GTHE2_COMMON_X1Y6;
+
+INST datapath/rgen[3].region/*/g_gt_instances[0]*/gthe2_i LOC=GTHE2_CHANNEL_X1Y23;
+INST datapath/rgen[3].region/*/g_gt_instances[1]*/gthe2_i LOC=GTHE2_CHANNEL_X1Y22;
+INST datapath/rgen[3].region/*/g_gt_instances[2]*/gthe2_i LOC=GTHE2_CHANNEL_X1Y21;
+INST datapath/rgen[3].region/*/g_gt_instances[3]*/gthe2_i LOC=GTHE2_CHANNEL_X1Y20;
+INST datapath/rgen[3].region/*/gthe2_common_i LOC=GTHE2_COMMON_X1Y5;
+ 
+INST datapath/rgen[4].region/*/g_gt_instances[0]*/gthe2_i LOC=GTHE2_CHANNEL_X1Y19;
+INST datapath/rgen[4].region/*/g_gt_instances[1]*/gthe2_i LOC=GTHE2_CHANNEL_X1Y18;
+INST datapath/rgen[4].region/*/g_gt_instances[2]*/gthe2_i LOC=GTHE2_CHANNEL_X1Y17;
+INST datapath/rgen[4].region/*/g_gt_instances[3]*/gthe2_i LOC=GTHE2_CHANNEL_X1Y16;
+INST datapath/rgen[4].region/*/gthe2_common_i LOC=GTHE2_COMMON_X1Y4;
+ 
+INST datapath/rgen[5].region/*/g_gt_instances[0]*/gthe2_i LOC=GTHE2_CHANNEL_X1Y15;
+INST datapath/rgen[5].region/*/g_gt_instances[1]*/gthe2_i LOC=GTHE2_CHANNEL_X1Y14;
+INST datapath/rgen[5].region/*/g_gt_instances[2]*/gthe2_i LOC=GTHE2_CHANNEL_X1Y13;
+INST datapath/rgen[5].region/*/g_gt_instances[3]*/gthe2_i LOC=GTHE2_CHANNEL_X1Y12;
+INST datapath/rgen[5].region/*/gthe2_common_i LOC=GTHE2_COMMON_X1Y3;
+ 
+INST datapath/rgen[6].region/*/g_gt_instances[0]*/gthe2_i LOC=GTHE2_CHANNEL_X1Y11;
+INST datapath/rgen[6].region/*/g_gt_instances[1]*/gthe2_i LOC=GTHE2_CHANNEL_X1Y10;
+INST datapath/rgen[6].region/*/g_gt_instances[2]*/gthe2_i LOC=GTHE2_CHANNEL_X1Y9;
+INST datapath/rgen[6].region/*/g_gt_instances[3]*/gthe2_i LOC=GTHE2_CHANNEL_X1Y8;
+INST datapath/rgen[6].region/*/gthe2_common_i LOC=GTHE2_COMMON_X1Y2;
+
+INST datapath/rgen[7].region/*/g_gt_instances[0]*/gthe2_i LOC=GTHE2_CHANNEL_X1Y7;
+INST datapath/rgen[7].region/*/g_gt_instances[1]*/gthe2_i LOC=GTHE2_CHANNEL_X1Y6;
+INST datapath/rgen[7].region/*/g_gt_instances[2]*/gthe2_i LOC=GTHE2_CHANNEL_X1Y5;
+INST datapath/rgen[7].region/*/g_gt_instances[3]*/gthe2_i LOC=GTHE2_CHANNEL_X1Y4;
+INST datapath/rgen[7].region/*/gthe2_common_i LOC=GTHE2_COMMON_X1Y1;
+ 
+INST datapath/rgen[8].region/*/g_gt_instances[0]*/gthe2_i LOC=GTHE2_CHANNEL_X1Y3;
+INST datapath/rgen[8].region/*/g_gt_instances[1]*/gthe2_i LOC=GTHE2_CHANNEL_X1Y2;
+INST datapath/rgen[8].region/*/g_gt_instances[2]*/gthe2_i LOC=GTHE2_CHANNEL_X1Y1;
+INST datapath/rgen[8].region/*/g_gt_instances[3]*/gthe2_i LOC=GTHE2_CHANNEL_X1Y0;
+INST datapath/rgen[8].region/*/gthe2_common_i LOC=GTHE2_COMMON_X1Y0;
+
+INST datapath/rgen[9].region/*/g_gt_instances[0]*/gthe2_i LOC=GTHE2_CHANNEL_X0Y0;
+INST datapath/rgen[9].region/*/g_gt_instances[1]*/gthe2_i LOC=GTHE2_CHANNEL_X0Y1;
+INST datapath/rgen[9].region/*/g_gt_instances[2]*/gthe2_i LOC=GTHE2_CHANNEL_X0Y2;
+INST datapath/rgen[9].region/*/g_gt_instances[3]*/gthe2_i LOC=GTHE2_CHANNEL_X0Y3;
+INST datapath/rgen[9].region/*/gthe2_common_i LOC=GTHE2_COMMON_X0Y0;
+
+INST datapath/rgen[10].region/*/g_gt_instances[0]*/gthe2_i LOC=GTHE2_CHANNEL_X0Y4;
+INST datapath/rgen[10].region/*/g_gt_instances[1]*/gthe2_i LOC=GTHE2_CHANNEL_X0Y5;
+INST datapath/rgen[10].region/*/g_gt_instances[2]*/gthe2_i LOC=GTHE2_CHANNEL_X0Y6;
+INST datapath/rgen[10].region/*/g_gt_instances[3]*/gthe2_i LOC=GTHE2_CHANNEL_X0Y7;
+INST datapath/rgen[10].region/*/gthe2_common_i LOC=GTHE2_COMMON_X0Y1;
+
+INST datapath/rgen[11].region/*/g_gt_instances[0]*/gthe2_i LOC=GTHE2_CHANNEL_X0Y8;
+INST datapath/rgen[11].region/*/g_gt_instances[1]*/gthe2_i LOC=GTHE2_CHANNEL_X0Y9;
+INST datapath/rgen[11].region/*/g_gt_instances[2]*/gthe2_i LOC=GTHE2_CHANNEL_X0Y10;
+INST datapath/rgen[11].region/*/g_gt_instances[3]*/gthe2_i LOC=GTHE2_CHANNEL_X0Y11;
+INST datapath/rgen[11].region/*/gthe2_common_i LOC=GTHE2_COMMON_X0Y2;
+
+INST datapath/rgen[12].region/*/g_gt_instances[0]*/gthe2_i LOC=GTHE2_CHANNEL_X0Y12;
+INST datapath/rgen[12].region/*/g_gt_instances[1]*/gthe2_i LOC=GTHE2_CHANNEL_X0Y13;
+INST datapath/rgen[12].region/*/g_gt_instances[2]*/gthe2_i LOC=GTHE2_CHANNEL_X0Y14;
+INST datapath/rgen[12].region/*/g_gt_instances[3]*/gthe2_i LOC=GTHE2_CHANNEL_X0Y15;
+INST datapath/rgen[12].region/*/gthe2_common_i LOC=GTHE2_COMMON_X0Y3;
+
+INST datapath/rgen[13].region/*/g_gt_instances[0]*/gthe2_i LOC=GTHE2_CHANNEL_X0Y16;
+INST datapath/rgen[13].region/*/g_gt_instances[1]*/gthe2_i LOC=GTHE2_CHANNEL_X0Y17;
+INST datapath/rgen[13].region/*/g_gt_instances[2]*/gthe2_i LOC=GTHE2_CHANNEL_X0Y18;
+INST datapath/rgen[13].region/*/g_gt_instances[3]*/gthe2_i LOC=GTHE2_CHANNEL_X0Y19;
+INST datapath/rgen[13].region/*/gthe2_common_i LOC=GTHE2_COMMON_X0Y4;
+
+INST datapath/rgen[14].region/*/g_gt_instances[0]*/gthe2_i LOC=GTHE2_CHANNEL_X0Y20;
+INST datapath/rgen[14].region/*/g_gt_instances[1]*/gthe2_i LOC=GTHE2_CHANNEL_X0Y21;
+INST datapath/rgen[14].region/*/g_gt_instances[2]*/gthe2_i LOC=GTHE2_CHANNEL_X0Y22;
+INST datapath/rgen[14].region/*/g_gt_instances[3]*/gthe2_i LOC=GTHE2_CHANNEL_X0Y23;
+INST datapath/rgen[14].region/*/gthe2_common_i LOC=GTHE2_COMMON_X0Y5;
+
+INST datapath/rgen[15].region/*/g_gt_instances[0]*/gthe2_i LOC=GTHE2_CHANNEL_X0Y24;
+INST datapath/rgen[15].region/*/g_gt_instances[1]*/gthe2_i LOC=GTHE2_CHANNEL_X0Y25;
+INST datapath/rgen[15].region/*/g_gt_instances[2]*/gthe2_i LOC=GTHE2_CHANNEL_X0Y26;
+INST datapath/rgen[15].region/*/g_gt_instances[3]*/gthe2_i LOC=GTHE2_CHANNEL_X0Y27;
+INST datapath/rgen[15].region/*/gthe2_common_i LOC=GTHE2_COMMON_X0Y6;
+
+INST datapath/rgen[16].region/*/g_gt_instances[0]*/gthe2_i LOC=GTHE2_CHANNEL_X0Y28;
+INST datapath/rgen[16].region/*/g_gt_instances[1]*/gthe2_i LOC=GTHE2_CHANNEL_X0Y29;
+INST datapath/rgen[16].region/*/g_gt_instances[2]*/gthe2_i LOC=GTHE2_CHANNEL_X0Y30;
+INST datapath/rgen[16].region/*/g_gt_instances[3]*/gthe2_i LOC=GTHE2_CHANNEL_X0Y31;
+INST datapath/rgen[16].region/*/gthe2_common_i LOC=GTHE2_COMMON_X0Y7;
+
+INST datapath/rgen[17].region/*/g_gt_instances[0]*/gthe2_i LOC=GTHE2_CHANNEL_X0Y32;
+INST datapath/rgen[17].region/*/g_gt_instances[1]*/gthe2_i LOC=GTHE2_CHANNEL_X0Y33;
+INST datapath/rgen[17].region/*/g_gt_instances[2]*/gthe2_i LOC=GTHE2_CHANNEL_X0Y34;
+INST datapath/rgen[17].region/*/g_gt_instances[3]*/gthe2_i LOC=GTHE2_CHANNEL_X0Y35;
+INST datapath/rgen[17].region/*/gthe2_common_i LOC=GTHE2_COMMON_X0Y8;
+
+# INST datapath/rgen[18].region/*/g_gt_instances[0]*/gthe2_i LOC=GTHE2_CHANNEL_X0Y36;
+# INST datapath/rgen[18].region/*/g_gt_instances[1]*/gthe2_i LOC=GTHE2_CHANNEL_X0Y37;
+# INST datapath/rgen[18].region/*/g_gt_instances[2]*/gthe2_i LOC=GTHE2_CHANNEL_X0Y38;
+# INST datapath/rgen[18].region/*/g_gt_instances[3]*/gthe2_i LOC=GTHE2_CHANNEL_X0Y39;
+# INST datapath/rgen[18].region/*/gthe2_common_i LOC=GTHE2_COMMON_X0Y9;

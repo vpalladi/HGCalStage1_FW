@@ -1,0 +1,22 @@
+# Constraints specific to null_algo
+
+INST formatter/rgen[0]* AREA_GROUP=payload_0;
+INST formatter/rgen[1]* AREA_GROUP=payload_1;
+INST formatter/rgen[2]* AREA_GROUP=payload_2;
+INST formatter/rgen[3]* AREA_GROUP=payload_3;
+INST formatter/rgen[4]* AREA_GROUP=payload_4;
+INST formatter/rgen[5]* AREA_GROUP=payload_5;
+INST formatter/rgen[6]* AREA_GROUP=payload_6;
+INST formatter/rgen[7]* AREA_GROUP=payload_7;
+INST formatter/rgen[8]* AREA_GROUP=payload_8;
+INST formatter/rgen[9]* AREA_GROUP=payload_9;
+INST formatter/rgen[10]* AREA_GROUP=payload_10;
+INST formatter/rgen[11]* AREA_GROUP=payload_11;
+INST formatter/rgen[12]* AREA_GROUP=payload_12;
+INST formatter/rgen[13]* AREA_GROUP=payload_13;
+INST formatter/rgen[14]* AREA_GROUP=payload_14;
+INST formatter/rgen[15]* AREA_GROUP=payload_15;
+INST formatter/rgen[16]* AREA_GROUP=payload_16;
+INST formatter/rgen[17]* AREA_GROUP=payload_17;
+# INST formatter/rgen[18]* AREA_GROUP=payload_18;
+

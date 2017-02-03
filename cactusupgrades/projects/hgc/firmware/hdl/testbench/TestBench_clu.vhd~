@@ -1,0 +1,132 @@
+-- Using the IEEE Library
+LIBRARY IEEE;
+
+USE IEEE.STD_LOGIC_1164.ALL;
+USE IEEE.NUMERIC_STD.ALL;
+
+-- I/O
+USE IEEE.STD_LOGIC_TEXTIO.ALL;
+USE STD.TEXTIO.ALL;
+
+-- common constants
+USE work.constants.ALL;
+
+-- "mp7_data" data-types
+USE work.mp7_data_types.ALL;
+
+-- common types
+USE work.common_types.ALL;
+
+--
+USE work.LinkReference.ALL;
+USE work.LinkType.ALL;
+
+-- Test bench entity 
+ENTITY TestBench IS
+GENERIC(
+  
+  sourcefile            : STRING := "/home/vpalladi/FW/MP7/hgc_sim/RawDataGenerator/mp7data/base.mp7"  
+
+  );
+END TestBench;
+
+-- Architecture begin
+ARCHITECTURE behavioral OF TestBench IS
+
+  signal DEBUG : boolean := false;
+  
+  SIGNAL clk , ipbus_clk                      : STD_LOGIC                               := '1';
+  signal linksIn   : ldata( 71 DOWNTO 0 )     := ( OTHERS => LWORD_NULL );
+  signal linksIn_0 : ldata( 71 DOWNTO 0 )     := ( OTHERS => LWORD_NULL );
+  signal linksIn_1 : ldata( 71 DOWNTO 0 )     := ( OTHERS => LWORD_NULL );
+  signal linksIn_2 : ldata( 71 DOWNTO 0 )     := ( OTHERS => LWORD_NULL );
+  signal linksIn_3 : ldata( 71 DOWNTO 0 )     := ( OTHERS => LWORD_NULL );
+  signal linksOut : ldata( 71 DOWNTO 0 )    := ( OTHERS => LWORD_NULL );
+ 
+
+BEGIN
+
+-------------------------------------------------------------------------------
+-- clocks
+-------------------------------------------------------------------------------
+    clk       <= NOT clk AFTER 2083 ps;  -- 500MHz
+    ipbus_clk <= NOT ipbus_clk AFTER 30 ns;  -- 33MHz
+-------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------
+-- Main process
+-------------------------------------------------------------------------------
+
+
+
+  main: process (clk) is
+
+   VARIABLE reference_Links                             : tLinkPipe( 10000 DOWNTO 0 );
+   VARIABLE L                                           : LINE;
+   VARIABLE clk_count : INTEGER := -1;
+   
+  BEGIN
+
+    IF( RISING_EDGE( clk ) ) THEN
+      
+-- -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      IF( clk_count = -1 ) THEN 
+        SourceLinkDataFile( sourcefile, 0, 0, 0, 1000, DEBUG, reference_Links ) ; --For aggregated captures
+      END IF;
+ 
+      -- Link Stimulus 
+      LinkStimulus
+      (
+        clk_count ,
+        reference_Links ,
+        linksIn
+        );
+
+      if DEBUG then
+        WRITE( L , STRING' ("in ") );      
+        HWRITE( L , linksIn(0).data );
+        WRITELINE( OUTPUT , L );
+        WRITE( L , STRING' ("out ") );      
+        HWRITE( L , linksOut(0).data );
+        WRITELINE( OUTPUT , L );
+      end if;
+      
+      clk_count := clk_count + 1;
+      
+    END IF;
+  END PROCESS;
+-- =========================================================================================================================================================================================
+-- THE ALGORITHMS UNDER TEST
+-- =========================================================================================================================================================================================
+-- -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    -- purpose: delay the input links 
+    -- type   : combinational
+    -- inputs : clk
+    -- outputs: 
+    pLinksInDelay: process (clk) is
+          begin  -- process pLinksInDelay
+      if rising_edge(clk) then
+        linksIn_1 <= linksIn;
+        linksIn_2 <= linksIn_1;
+        linksIn_3 <= linksIn_2;
+      end if;
+    end process pLinksInDelay;
+    
+    MainProcessor: ENTITY work.MainProcessorTop 
+      port MAP(
+        clk               => clk,
+        LinksIn           => linksIn_3,
+        LinksOut          => linksOut,
+-- Configuration
+        ipbus_clk         => ipbus_clk
+        );
+
+    MP7CaptureFileWriterInstance1 : ENTITY work.MP7CaptureFileWriter
+      GENERIC MAP(
+        FileName      => STRING' ( "test.txt" ) ,
+        DebugMessages => FALSE
+        )
+      PORT MAP( clk , linksOut );
+    
+END ARCHITECTURE behavioral;

@@ -1,0 +1,4 @@
+# Payload area constraints
+
+INST payload/* AREA_GROUP=payload;
+

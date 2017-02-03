@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<connections>
+
+  <!-- DUMMY UDP -->
+  <connection id="jsm" uri="ipbusudp-2.0://192.168.0.128:50001"	address_table="file://jsm-address.xml" />
+</connections>
+
