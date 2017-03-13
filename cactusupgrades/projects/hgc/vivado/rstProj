@@ -1,0 +1,6 @@
+rm -rf top
+rm vivado*
+rm -r ./.top
+rm -r ./.Xil
+
+
