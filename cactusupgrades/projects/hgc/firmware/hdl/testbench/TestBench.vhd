@@ -14,6 +14,9 @@ use work.constants.all;
 -- "mp7_data" data-types
 use work.mp7_data_types.all;
 
+-- "hgc_data" data-types
+use work.hgc_data_types.all;
+
 -- common types
 use work.common_types.all;
 
@@ -25,7 +28,7 @@ use work.LinkType.all;
 entity TestBench is
   generic(
 
-    sourcefile : string := "/home/vpalladi/FW/MP7/hgc_sim/RawDataGenerator/mp7data/base.mp7"
+    sourcefile : string := "./data/base.mp7"
 
     );
 end TestBench;
@@ -43,14 +46,15 @@ architecture behavioral of TestBench is
   signal linksIn_3      : ldata(71 downto 0) := (others => LWORD_NULL);
   signal linksOut       : ldata(71 downto 0) := (others => LWORD_NULL);
 
-
+  signal flaggedWordTranslate : hgcFlaggedWord;
 -------------------------------------------------------------------------------
 -- 
 -------------------------------------------------------------------------------
   signal flaggedWordIn  : hgcFlaggedWord;
   signal flaggedWordOut : hgcFlaggedWord;
   signal bxCounter      : natural;
-  signal weSeed         : std_logic_array(nClusters downto 0);
+--  signal weSeed         : std_logic_array(nClusters downto 0);
+  signal weSeed         : std_logic_array(9 downto 0);
   
 begin
 
@@ -64,9 +68,6 @@ begin
 -------------------------------------------------------------------------------
 -- Main process
 -------------------------------------------------------------------------------
-
-
-
   main : process (clk) is
 
     variable reference_Links : tLinkPipe(10000 downto 0);
@@ -125,7 +126,7 @@ begin
   -- translate in hgc flagged words
   mp72flagged : entity work.mp72hgcFlaggedWord
     port map(
-      mp7Word        => linksIn(linkId),
+      mp7Word        => linksIn(0),
       hgcFlaggedWord => flaggedWordTranslate
       );
 
@@ -142,18 +143,18 @@ begin
       );
 
   
---  MainProcessor : entity work.MainProcessorTop
---    port map(
---      clk       => clk,
---      LinksIn   => linksIn_3,
---      LinksOut  => linksOut,
----- Configuration
---      ipbus_clk => ipbus_clk
---      );
+  MainProcessor : entity work.MainProcessorTop
+    port map(
+      clk       => clk,
+      LinksIn   => linksIn_3,
+      LinksOut  => linksOut,
+-- Configuration
+      ipbus_clk => ipbus_clk
+      );
 
   MP7CaptureFileWriterInstance1 : entity work.MP7CaptureFileWriter
     generic map(
-      FileName      => string' ("test.txt"),
+      FileName      => string' ("output.txt"),
       DebugMessages => false
       )
     port map(clk, linksOut);

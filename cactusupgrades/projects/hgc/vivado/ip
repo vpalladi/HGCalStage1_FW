@@ -9,5 +9,4 @@
 /../firmware/ip/variable_data_delay/variable_data_delay.xci
 /../firmware/ip/fifo_read_pointers_delay_ram/fifo_read_pointers_delay_ram.xci
 /../firmware/ip/clu_dist_mem_row/clu_dist_mem_row.xci
-/../firmware/ip/dist_mem_gen_0/dist_mem_gen_0.xci
 

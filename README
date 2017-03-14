@@ -1,0 +1,9 @@
+The projects are in ./cactusupgrades/projects.
+
+In the folder ./cactusupgrades/projects/hgc you will find 3 directories:
+
+firmware: here is located all the firmware belonging to the HGC project (testbenches included).
+
+vivado: this is the vivado project folder. to genereate the project go to ./cactusupgrades/projects/hgc/vivado, launch vivado end execute the tcl script generateProject.tcl. This script will genreate all the vivado project and simulaiton files needed from modelsim.
+
+sim: in this folder you are supposed to run your simulaiton. Once you generate the vivado project, you can start to compile your libraries (make libs), compile your design (make) and simulate it (make sim). 

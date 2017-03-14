@@ -6,14 +6,18 @@ VIVADO_PROJECT_NAME = top
 PROJECT = ../vivado/$(VIVADO_PROJECT_NAME)
 
 CACTUS_COMPONENTS = ../../../components
-IP_SOURCES = ../vivado/top/top.srcs/sources_1/ip/
+IP_SOURCES = $(PROJECT)/$(VIVADO_PROJECT_NAME).srcs/sources_1/ip/
 HDL_SOURCES = ../firmware/hdl
 
 SIM_SCRIPTS = $(PROJECT)/$(VIVADO_PROJECT_NAME).ip_user_files/sim_scripts
+VIVADO_SIM_LIBS_PATH = $(PROJECT)/$(VIVADO_PROJECT_NAME).sim/vivado_msim_libs
+
 
 SIM_PATH = ${shell pwd}
 
-#IPs = ${shell ls $(SIM_SCRIPTS)}
+#
+## ip cores that needs to genereate theis own sim lib
+#
 IPs = variable_data_delay
 IPs += fifo_read_pointers_delay_ram
 IPs += clu_dist_mem_row
@@ -47,7 +51,6 @@ all:
 #
 ## project 
 #
-
 	vcom -explicit  $(HDL_SOURCES)/FunkyMiniBus.vhd
 
 	vcom -explicit  $(HDL_SOURCES)/GenRomClocked.vhd
@@ -97,7 +100,7 @@ all:
 
 
 # generates the IP cores libs 
-ip_libs: 
+ip_libs: FORCE
 	@for ip in $(IPs) ; do \
 	cd $(SIM_SCRIPTS)/$$ip/modelsim ; \
 	./$$ip.sh ; \
@@ -119,11 +122,22 @@ libs: clean_ip_libs ip_libs
 	vmap fifo_generator_v13_0_1 $(SIM_SCRIPTS)/fifo_read_pointers_delay_ram/modelsim/msim/fifo_generator_v13_0_1
 	vmap dist_mem_gen_v8_0_9    $(SIM_SCRIPTS)/clu_dist_mem_row/modelsim/msim/dist_mem_gen_v8_0_9
 
-	vmap secureip ./vivado_libs/secureip
-	vmap unifast  ./vivado_libs/unifast  
-	vmap unimacro ./vivado_libs/unimacro
-	vmap unisim   ./vivado_libs/unisim
+	vmap secureip $(VIVADO_SIM_LIBS_PATH)/secureip
+	vmap unifast  $(VIVADO_SIM_LIBS_PATH)/unifast  
+	vmap unimacro $(VIVADO_SIM_LIBS_PATH)/unimacro
+	vmap unisim   $(VIVADO_SIM_LIBS_PATH)/unisim
 
-clean_libs:
+clean_libs: clean_ip_libs
 	rm -rf ip_libs
 	rm -rf work
+
+deep_clean: clean_libs
+	rm -f *txt
+	rm -f modelsim.ini
+	rm -rf work
+	rm -f *wlf
+	rm -f transcript
+sim:
+	vsim work.testbench
+
+FORCE:

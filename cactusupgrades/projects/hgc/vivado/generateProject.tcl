@@ -6,6 +6,7 @@
 
 # Set the reference directory for source file relative paths (by default the value is script directory path)
 set origin_dir "."
+set vivado_sim_libs_path "./top/top.sim/vivado_msim_libs"
 
 # Use origin directory path location variable, if specified in the tcl shell
 if { [info exists ::origin_dir_loc] } {
@@ -60,13 +61,15 @@ create_project top ./top
 
 # Set project properties
 set obj [get_projects top]
-set_property "compxlib.modelsim_compiled_library_dir" "../sim/vivado_libs" $obj
+set_property "compxlib.modelsim_compiled_library_dir" $vivado_sim_libs_path $obj
 set_property "default_lib" "xil_defaultlib" $obj
 set_property "part" "xc7vx690tffg1927-2" $obj
 set_property "sim.ip.auto_export_scripts" "1" $obj
 set_property "simulator_language" "Mixed" $obj
 set_property "target_language" "VHDL" $obj
 set_property "target_simulator" "ModelSim" $obj
+
+compile_simlib -simulator modelsim -directory $vivado_sim_libs_path
 
 
 #############################################
@@ -86,6 +89,10 @@ foreach f $vhd_files {
     puts "HGCINFO: adding file $f"
     add_files -norecurse -fileset $obj "[file normalize "$origin_dir$f"]"
 }
+
+puts "HGCINFO: setting the top as top"
+set_property "top" "top" $obj
+
 
 # adding the ips and generating the targets 
 set file_ip [open "ip" r]
@@ -114,8 +121,6 @@ foreach f $ip_files {
     export_simulation -of_objects [get_files $ip_local] -directory $origin_dir$sim_scripts_dir -force -quiet
 
 }
-
-set_property "top" "top" $obj
 
 
 #############################################
@@ -191,6 +196,7 @@ set_property "used_in_synthesis" "0" $file_obj
 # Set 'constrs_1' fileset properties
 #set obj [get_filesets constrs_1]
 
+
 #########################################
 # Create 'sim_1' fileset (if not found) #
 #########################################
@@ -204,6 +210,7 @@ set_property "modelsim.log_all_signals" "0" $obj
 set_property "modelsim.use_explicit_decl" "1" $obj
 set_property "modelsim.vhdl_syntax" "93" $obj
 set_property "top" "rxdata_simple_cdc_buf_asymmetric" $obj
+
 
 #######################################
 # Create 'synth_1' run (if not found) #
@@ -221,6 +228,7 @@ set_property "steps.synth_design.args.flatten_hierarchy" "none" $obj
 
 # set the current synth run
 current_run -synthesis [get_runs synth_1]
+
 
 ######################################
 # Create 'impl_1' run (if not found) #
@@ -241,4 +249,4 @@ set_property "steps.write_bitstream.args.verbose" "0" $obj
 current_run -implementation [get_runs impl_1]
 
 
-puts "INFO: Project created:top"
+puts "INFO: Project created: top"
