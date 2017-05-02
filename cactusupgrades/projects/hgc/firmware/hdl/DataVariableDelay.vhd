@@ -14,16 +14,15 @@ use work.mp7_data_types.all;
 use work.hgc_data_types.all;
 
 
-
 entity DataVariableDelay is
 
   port (
-    clk     : in  std_logic;
-    rst     : in  std_logic;
+    clk            : in  std_logic;
+    rst            : in  std_logic;
     flaggedWordIn  : in  hgcFlaggedWord;
     flaggedWordOut : out hgcFlaggedWord;
-    we : out std_logic;
-    EOE : out std_logic
+    we             : out std_logic;
+    EOE            : out std_logic
     );
 
 end entity DataVariableDelay;
@@ -33,78 +32,118 @@ architecture behavioural of DataVariableDelay is
   -- storage ram 
   signal data_ram_clka    : std_logic;
   signal data_ram_ena     : std_logic;
-  signal data_ram_wea     : std_logic_vector (0 to 0);
+  signal data_ram_wea     : std_logic_vector (0 to 0)      := (others => '0');
   signal data_ram_addr_wr : std_logic_vector (5 downto 0)  := (others => '0');
-  signal data_ram_dina    : std_logic_vector (31 downto 0);
+  signal data_ram_dina    : std_logic_vector (31 downto 0) := x"00000000";
   signal data_ram_clkb    : std_logic;
   signal data_ram_enb     : std_logic;
   signal data_ram_addr_rd : std_logic_vector (5 downto 0)  := (others => '0');
   signal data_ram_doutb   : std_logic_vector (31 downto 0) := (others => '0');
 
   -- read pointers fifo
-  signal rp_fifo_clk   : std_logic;
-  signal rp_fifo_srst  : std_logic;
-  signal rp_fifo_din   : std_logic_vector(31 downto 0);
-  signal rp_fifo_wr_en : std_logic := '0';
-  signal rp_fifo_rd_en : std_logic;
-  signal rp_fifo_dout  : std_logic_vector(31 downto 0);
-  signal rp_fifo_full  : std_logic;
-  signal rp_fifo_empty : std_logic;
+--  signal rp_fifo_clk   : std_logic;
+--  signal rp_fifo_srst  : std_logic;
+--  signal rp_fifo_din   : std_logic_vector(31 downto 0);
+--  signal rp_fifo_wr_en : std_logic := '0';
+--  signal rp_fifo_rd_en : std_logic;
+--  signal rp_fifo_dout  : std_logic_vector(31 downto 0);
+--  signal rp_fifo_full  : std_logic;
+--  signal rp_fifo_empty : std_logic;
 
   -- helpers
-  signal new_bx_detected : std_logic := '0';
-  signal firstEventDetected : std_logic := '0';     
+  signal bxCounter : natural := 0;
+--  signal new_bx_detected    : std_logic := '0';
+  signal firstEventDetected : std_logic := '0';
+  signal mp7WordToRam       : lword     := LWORD_NULL;
+  signal mp7WordFromRam     : lword     := LWORD_NULL;
 
-  
 begin  -- architecture behavioural
-
 
   -----------------------------------------------------------------------------
   -- ports assignemets
   -----------------------------------------------------------------------------
-  EOE <= new_bx_detected;
+  --EOE <= new_bx_detected;
   --we <= '1' when flaggedWordOut.valid = '1' else
   --'0';
-  we <= '1' when data_ram_doutb(16) = '1' else
+  we  <= '1' when data_ram_doutb(16) = '1' else
         '0';
   --we <= '1';
+  bxCounter <= bxCounter+1 when rising_edge(clk) and flaggedWordIn.word.SOE = '1' else bxCounter;
+  
+  -----------------------------------------------------------------------------
+  -- helper to define the input and output to/from RAM
+  -----------------------------------------------------------------------------
+  e_toRAM : entity work.hgc2mp7FlaggedWord
+    port map(
+      hgcFlaggedWord => flaggedWordIn,
+      mp7Word        => mp7WordToRam
+      );
 
-  new_bx_detected <= '1' when (flaggedWordIn.address.row & flaggedWordIn.address.col & flaggedWordIn.energy) = x"BCBC"
-                     else '0';
+  e_fromRAM : entity work.mp72hgcFlaggedWord
+    port map(
+      mp7Word        => mp7WordFromRam,
+      hgcFlaggedWord => flaggedWordOut
+      );
 
   -----------------------------------------------------------------------------
   -- data storage
   -----------------------------------------------------------------------------
-  data_ram_clka   <= clk;
-  data_ram_ena    <= '1';
-  data_ram_wea(0) <= firstEventDetected;
-  data_ram_clkb   <= clk;
-  data_ram_enb    <= firstEventDetected;
+  data_ram_clka <= clk;
+  data_ram_ena <= '1';
 
-  data_ram_dina <= "0000000000000" & flaggedWordIn.dataFlag & flaggedWordIn.seedFlag & flaggedWordIn.valid & flaggedWordIn.address.row & flaggedWordIn.address.col & flaggedWordIn.energy when rising_edge(clk)
-                   else data_ram_dina;
+  data_ram_clkb <= clk;
+  data_ram_enb  <= '1';
 
-  
-  -- handle the wr_ptr
-  firstEventDetected <= '1' when rising_edge(clk) and firstEventDetected = '0' and flaggedWordIn.address.row & flaggedWordIn.address.col = x"BC" and flaggedWordIn.energy = x"BC"
-                        else firstEventDetected; 
-
-  process_increment_wr_ptr : process (clk) is
+  -- wr/rd ram
+  p_ram_wr : process (clk) is
+     variable into_event : std_logic := '0';
+     variable into_extended_event : std_logic := '0';
+--     variable enable_ram_rd : std_logic := '0';       
   begin
     if rising_edge(clk) then
+
+      -- ram port a input
+      data_ram_dina <= mp7WordToRam.data;
       
-      if firstEventDetected = '1' then
-        data_ram_addr_wr <= data_ram_addr_wr + 1;
+      -- into_event and into_extended_event variables
+      if flaggedWordIn.word.SOE = '1' then
+        into_event := '1';
+      elsif flaggedWordIn.word.EOE = '1' then
+        into_event := '0';
+      end if;
+
+      if into_event = '1' or flaggedWordIn.word.EOE = '1' then
+        into_extended_event := '1';
+      else
+        into_extended_event := '0';
       end if;
       
+      -- ram write enable port a
+      if rst = '0' then
+        data_ram_wea(0) <= '0';
+      elsif into_extended_event = '1' then
+        data_ram_wea(0) <= '1';
+      else
+        data_ram_wea(0) <= '0';
+      end if;
+      
+      -- wr pointer
+      if into_extended_event = '1' then 
+        data_ram_addr_wr <= data_ram_addr_wr + 1;
+      end if;
+
+      -- read pointer increment 
+      if flaggedWordIn.word.EOE = '1' and data_ram_addr_wr /= data_ram_addr_rd then
+        data_ram_addr_rd <= data_ram_addr_rd + 1;
+      elsif data_ram_addr_wr = data_ram_addr_rd then
+        data_ram_addr_rd <= data_ram_addr_rd
+      end if;
+            
     end if;
-  end process process_increment_wr_ptr;
+  end process;
 
-  -- handle the rd_ptr
-  data_ram_addr_rd <=  data_ram_addr_rd + 1 when rp_fifo_empty = '0' and rising_edge(clk)
-                       else data_ram_addr_rd;
 
-  variable_data_delay_1 : entity work.variable_data_delay
+  e_ram_variable_data_delay : entity work.variable_data_delay
     port map (
       clka  => data_ram_clka,
       ena   => data_ram_ena,
@@ -116,36 +155,30 @@ begin  -- architecture behavioural
       addrb => data_ram_addr_rd,
       doutb => data_ram_doutb
       );
+  
+  mp7WordFromRam.data <= data_ram_doutb;
 
-  flaggedWordOut.dataFlag <= data_ram_doutb(18);
-  flaggedWordOut.seedFlag <= data_ram_doutb(17);
-  flaggedWordOut.valid    <= data_ram_doutb(16);
-  flaggedWordOut.address.row  <= data_ram_doutb(15 downto 12);
-  flaggedWordOut.address.col  <= data_ram_doutb(11 downto 8);
-  flaggedWordOut.energy   <= data_ram_doutb(7 downto 0);
-
+  
   -----------------------------------------------------------------------------
   -- store the read pointers
   -----------------------------------------------------------------------------
 
-  rp_fifo_clk   <= clk;
-  rp_fifo_srst  <= rst;
-  rp_fifo_din   <= "00000000000000000000000000" & data_ram_addr_wr;
-  rp_fifo_wr_en <= '1' when new_bx_detected = '1' and firstEventDetected='1'
-                   else '0';
-  rp_fifo_rd_en <= '1' when new_bx_detected = '1' and rp_fifo_empty = '0'
-                   else '0';
-
-  fifofo_read_pointers_delay_ram_1 : entity work.fifo_read_pointers_delay_ram
-    port map (
-      clk   => rp_fifo_clk,
-      srst  => rp_fifo_srst,
-      din   => rp_fifo_din,
-      wr_en => rp_fifo_wr_en,
-      rd_en => rp_fifo_rd_en,
-      dout  => rp_fifo_dout,
-      full  => rp_fifo_full,
-      empty => rp_fifo_empty
-      );
+--  rp_fifo_clk   <= clk;
+--  rp_fifo_srst  <= '0' when rst ='1' else '1';
+--  rp_fifo_din   <= "00000000000000000000000000" & data_ram_addr_wr;
+--  rp_fifo_wr_en <= '1' when flaggedWordIn.word.SOE = '1' else '0';
+--  rp_fifo_rd_en <= '1' when flaggedWordIn.word.EOE = '1' and rp_fifo_empty = '0' else '0';
+--
+--  e_fifofo_read_pointers_delay_ram : entity work.fifo_read_pointers_delay_ram
+--    port map (
+--      clk   => rp_fifo_clk,
+--      srst  => rp_fifo_srst,
+--      din   => rp_fifo_din,
+--      wr_en => rp_fifo_wr_en,
+--      rd_en => rp_fifo_rd_en,
+--      dout  => rp_fifo_dout,
+--      full  => rp_fifo_full,
+--      empty => rp_fifo_empty
+--      );
 
 end architecture behavioural;

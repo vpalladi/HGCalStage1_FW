@@ -54,7 +54,7 @@ begin  -- architecture seedDistributore_arch
 
       if rst = '0' then
         internalBxCounter <= 0;
-      elsif flaggedWordIn.EOE = '1' then
+      elsif flaggedWordIn.word.EOE = '1' then
         internalBxCounter <= internalBxCounter + 1;
       end if;
 
@@ -62,9 +62,9 @@ begin  -- architecture seedDistributore_arch
   end process;
 
 
------------------------------------------------------------------------------
--- counting seeds and addressing clusters
------------------------------------------------------------------------------
+ -----------------------------------------------------------------------------
+ -- counting seeds and addressing clusters
+ -----------------------------------------------------------------------------
 
   process_seedCounter : process (clk, rst) is
 
@@ -73,15 +73,18 @@ begin  -- architecture seedDistributore_arch
   begin  -- process process_seedCounter
 
     if rising_edge(clk) then
+
+      flaggedWordOut <= flaggedWordIn;
+
       if rst = '0' then
         seedCounter    <= 0;
         currentCluster := 0;
         for i in 0 to nClusters-1 loop
-          weSeed(i) <= '0';
+          weSeed( i ) <= '0';
         end loop;
       elsif flaggedWordIn.seedFlag = '1' then
         seedCounter            <= seedCounter + 1;
-        weSeed(currentCluster) <= '1';
+        weSeed( currentCluster ) <= '1';
         if currentCluster = nClusters-1 then
           currentCluster := 0;         
         else
@@ -97,18 +100,6 @@ begin  -- architecture seedDistributore_arch
     end if;
 
   end process;
-
-
-  -----------------------------------------------------------------------------
-  -- delayng the out word to sync with the weSeed
-  -----------------------------------------------------------------------------
-
-  process_flaggedWordOutDelay: process (clk) is
-  begin
-    if rising_edge(clk) then
-      flaggedWordOut <= flaggedWordIn;
-    end if;
-  end process process_flaggedWordOutDelay;
   
   
 end architecture seedDistributor_arch;

@@ -15,11 +15,12 @@ package hgc_data_types is
   -- specific 
   type hgcAddress is
   record
-    row : std_logic_vector(3 downto 0);
-    col : std_logic_vector(3 downto 0);
+    wafer : std_logic_vector(2 downto 0);
+    row : std_logic_vector(2 downto 0);
+    col : std_logic_vector(2 downto 0);
   end record;
 
-  constant HGCADDR_NULL : hgcAddress := ((others => '0'), (others => '0'));
+  constant HGCADDR_NULL : hgcAddress := ((others => '0'), (others => '0'), (others => '0'));
   --constant HGCADDR_NEWBX : hgcAddress := ( x"B", x"C");
 
   type hgcWord is
@@ -27,36 +28,29 @@ package hgc_data_types is
     valid   : std_logic;
     address : hgcAddress;
     energy  : std_logic_vector(7 downto 0);
-    EOE : std_logic;
+    SOE     : std_logic;
+    EOE     : std_logic;
   end record;
 
   type hgcData is array(natural range <>) of hgcWord;
 
-  constant HGCWORD_NULL  : hgcWord             := ('0', HGCADDR_NULL, (others => '0'), '0');
+  constant HGCWORD_NULL  : hgcWord             := ('0', HGCADDR_NULL, (others => '0'), '0', '0');
   -- must define a new bx word
   constant HGCDATA_NULL  : hgcData(0 downto 0) := (0 => HGCWORD_NULL);
 
 
   type hgcFlaggedWord is
   record
--- change to
---  word : hgcWord;
---  dataFlag : std_logic;
---  seedFlag : std_logic;
-
-    valid    : std_logic;
-    address  : hgcAddress;
-    energy   : std_logic_vector(7 downto 0);
+    word : hgcWord;
     dataFlag : std_logic;
     seedFlag : std_logic;
-    EOE      : std_logic;
   end record;
 
   type hgcFlaggedData is array(natural range <>) of hgcFlaggedWord;
 
-  constant HGCFLAGGEDWORD_NULL  : hgcFlaggedWord             := ('0', HGCADDR_NULL, (others => '0'), '0', '0', '0');
+  constant HGCFLAGGEDWORD_NULL  : hgcFlaggedWord             := ( HGCWORD_NULL, '0', '0' );
   --constant HGCFLAGGEDWORD_NEWBX : hgcFlaggedWord             := ('0', HGCADDR_FULL, (others => '1'), '1', '1');
-  constant HGCFLAGGEDDATA_NULL  : hgcFlaggedData(0 downto 0) := (0                          => HGCFLAGGEDWORD_NULL);
+  constant HGCFLAGGEDDATA_NULL  : hgcFlaggedData(0 downto 0) := (0 => HGCFLAGGEDWORD_NULL);
 
 
 end hgc_data_types;

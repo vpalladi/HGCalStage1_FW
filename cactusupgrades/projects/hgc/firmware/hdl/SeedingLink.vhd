@@ -1,54 +1,61 @@
 --! Using the IEEE Library
-LIBRARY IEEE;
+library IEEE;
 --! Using STD_LOGIC
-USE IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_1164.all;
 --! Using NUMERIC TYPES
-USE IEEE.NUMERIC_STD.ALL;
+use IEEE.NUMERIC_STD.all;
 
 --! using the HGC data types
-USE work.hgc_data_types.ALL;
+use work.hgc_data_types.all;
+
+--! using the HGC data types
+use work.mp7_data_types.all;
 
 
 entity SeedingLink is
-  
+
   port (
 
-    clk : in STD_LOGIC;
-    
+    clk : in std_logic;
+
     energyThreshold : in std_logic_vector(7 downto 0);
-    
-    wordIn  : in hgcWord ;  -- 8b address 8b data(energy)
+
+    mp7wordIn      : in  lword;         -- 8b address 8b data(energy)
     flaggedWordOut : out hgcFlaggedWord
-    
-  );
+
+    );
 
 end entity SeedingLink;
 
 architecture behavioral of SeedingLink is
 
+  signal wordIn : hgcWord := HGCWORD_NULL;
+
 begin  -- architecture behavioral
 
-  proccessSeedFlag : process (clk) is
-    
+  -- translate into HGC format
+  e_mp72hgcWord : entity work.mp72hgcWord
+    port map (
+      mp7Word => mp7wordIn,
+      hgcWord => wordIn
+      );
+
+  -- seeding the data
+  p_SeedFlag : process (clk) is
   begin
+    if rising_edge(clk) then
 
-    if rising_edge(clk) then 
-
-      if wordIn.energy > energyThreshold then 
-        flaggedWordOut.seedFlag <= '1';       
-      else
+      if wordIn.energy > energyThreshold and wordIn.EOE = '0' then
+        flaggedWordOut.seedFlag <= '1';
+        flaggedWordOut.dataFlag <= '0';
+      elsif wordin.EOE = '0' then
         flaggedWordOut.seedFlag <= '0';
+        flaggedWordOut.dataFlag <= '1';
       end if;
-      flaggedWordOut.dataFlag <= '0';      
-      
-      
-      flaggedWordOut.address <= wordIn.address;
-      flaggedWordOut.energy  <= wordIn.energy;
-      flaggedWordOut.valid  <= wordIn.valid;
-      flaggedWordOut.EOE  <= wordIn.EOE;
-        
+
+      flaggedWordOut.word <= wordIn;
+
     end if;
-    
-  end process proccessSeedFlag;
+  end process;
 
 end architecture behavioral;

@@ -28,7 +28,7 @@ use work.LinkType.all;
 entity TestBench is
   generic(
 
-    sourcefile : string := "./data/base.mp7"
+    sourcefile : string := "./data/out.mp7"
 
     );
 end TestBench;
@@ -45,17 +45,17 @@ architecture behavioral of TestBench is
   signal linksIn_2      : ldata(71 downto 0) := (others => LWORD_NULL);
   signal linksIn_3      : ldata(71 downto 0) := (others => LWORD_NULL);
   signal linksOut       : ldata(71 downto 0) := (others => LWORD_NULL);
-
-  signal flaggedWordTranslate : hgcFlaggedWord;
+ 
+--  signal flaggedWordTranslate : hgcFlaggedWord;
 -------------------------------------------------------------------------------
 -- 
 -------------------------------------------------------------------------------
-  signal flaggedWordIn  : hgcFlaggedWord;
-  signal flaggedWordOut : hgcFlaggedWord;
-  signal bxCounter      : natural;
+  --signal flaggedWordIn  : hgcFlaggedWord;
+  --signal flaggedWordOut : hgcFlaggedWord;
+  --signal bxCounter      : natural;
 --  signal weSeed         : std_logic_array(nClusters downto 0);
-  signal weSeed         : std_logic_array(9 downto 0);
-  
+  --signal weSeed         : std_logic_array(9 downto 0);
+
 begin
 
 -------------------------------------------------------------------------------
@@ -110,44 +110,44 @@ begin
 -- -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
   -- purpose: delay the input links 
-  -- type   : combinational
-  -- inputs : clk
-  -- outputs: 
-  pLinksInDelay : process (clk) is
+  p_LinksInDelay : process (clk) is
   begin  -- process pLinksInDelay
     if rising_edge(clk) then
       linksIn_1 <= linksIn;
       linksIn_2 <= linksIn_1;
       linksIn_3 <= linksIn_2;
     end if;
-  end process pLinksInDelay;
-
-
-  -- translate in hgc flagged words
-  mp72flagged : entity work.mp72hgcFlaggedWord
-    port map(
-      mp7Word        => linksIn(0),
-      hgcFlaggedWord => flaggedWordTranslate
-      );
-
-
-
-  seedDistributor_1: entity work.seedDistributor
-    port map (
-      clk            => clk,
-      rst            => '1',
-      flaggedWordIn  => flaggedWordTranslate,
-      flaggedWordOut => flaggedWordOut,
-      bxCounter      => bxCounter,
-      weSeed         => weSeed
-      );
+  end process p_LinksInDelay;
+--
+--  
+--  -- translate in hgc flagged words
+--  mp72flagged : entity work.mp72hgcFlaggedWord
+--    port map(
+--      mp7Word        => linksIn(0),
+--      hgcFlaggedWord => flaggedWordTranslate
+--      );
+--
+--
+--  
+--  e_seedDistributor: entity work.seedDistributor
+--    generic map (
+--      nClusters => 10
+--      )
+--    port map (
+--      clk            => clk,
+--      rst            => '1',
+--      flaggedWordIn  => flaggedWordTranslate,
+--      flaggedWordOut => flaggedWordOut,
+--      bxCounter      => bxCounter,
+--      weSeed         => weSeed
+--      );
 
   
-  MainProcessor : entity work.MainProcessorTop
+  p_MainProcessor : entity work.MainProcessorTop
     port map(
       clk       => clk,
-      LinksIn   => linksIn_3,
-      LinksOut  => linksOut,
+      linksIn   => linksIn_3,
+      linksOut  => linksOut,
 -- Configuration
       ipbus_clk => ipbus_clk
       );

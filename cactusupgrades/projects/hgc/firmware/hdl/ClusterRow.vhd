@@ -62,6 +62,9 @@ architecture arch_cluster_1 of clusterRow is
   signal dmem_d_out_a : std_logic_vector(8 downto 0);
   signal dmem_d_out_b : std_logic_vector(8 downto 0);
 
+  --helpers
+  --signal mp7WordFromDRAM : lword := LWORD_NULL;
+  
 begin  -- architecture arch_cluster_1
 
   -----------------------------------------------------------------------------
@@ -69,9 +72,9 @@ begin  -- architecture arch_cluster_1
   -----------------------------------------------------------------------------
   dmem_clk  <= clk;
   dmem_we   <= we or erase;
-  dmem_a_wr <= flaggedWordIn.address.col-flaggedSeedWordIn.address.col+(nColumns-1)/2 when we = '1' else
-               erase_ptr;
-  dmem_d_in <= flaggedWordIn.seedFlag & flaggedWordIn.energy when we = '1' else
+  dmem_a_wr <= '0' & flaggedWordIn.word.address.col-flaggedSeedWordIn.word.address.col+(nColumns-1)/2 when we = '1' else
+               erase_ptr;               -- must be updated
+  dmem_d_in <= flaggedWordIn.seedFlag & flaggedWordIn.word.energy when we = '1' else
                (others => '0');
 
   -- handling the read pointer
@@ -107,9 +110,18 @@ begin  -- architecture arch_cluster_1
       dpo  => dmem_d_out_b
       );
 
-  flaggedWordOut.energy   <= dmem_d_out_b(7 downto 0);
+ -- mp7WordFromDRAM.data <= dmem_d_out_b;
+ -- 
+ -- e_fromRAM : entity work.mp72hgcFlaggedWord
+ --   port map(
+ --     mp7Word        => mp7WordFromDRAM,
+ --     hgcFlaggedWord => flaggedWordOut
+ --     );
+  
+ 
+  flaggedWordOut.word.energy   <= dmem_d_out_b(7 downto 0);
   flaggedWordOut.seedFlag <= dmem_d_out_b(8);
-  flaggedWordOut.address.col <= dmem_a_rd + flaggedSeedWordIn.address.col - (nColumns-1)/2;
-  flaggedWordOut.valid    <= '1';
+  flaggedWordOut.word.address.col <= dmem_a_rd(2 downto 0) + flaggedSeedWordIn.word.address.col - (nColumns-1)/2;
+  flaggedWordOut.word.valid    <= '1';
 
 end architecture arch_cluster_1;
