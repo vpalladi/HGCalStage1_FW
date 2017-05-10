@@ -59,18 +59,19 @@ architecture behavioral of MainProcessorTop is
   -- dynamic delay
   -----------------------------------------------------------------------------
   signal ddelay_EOE : std_logic_array(71 downto 0);
-  signal ddelay_we  : std_logic_array(71 downto 0);
+  --signal ddelay_we  : std_logic_array(71 downto 0);
 
   -----------------------------------------------------------------------------
   -- seed distributor
   -----------------------------------------------------------------------------
   type std_logic_2Darray is array (natural range <>) of std_logic_array(nClusters-1 downto 0);
-  type hgcFlaggedData_cluOut is array (nClusters downto 0) of hgcFlaggedData(4 downto 0);
+  type hgcFlaggedData_cluOut is array (nClusters downto 0) of hgcFlaggedWord;
+  --type hgcFlaggedData_cluOut is array (nClusters downto 0) of hgcFlaggedData(4 downto 0);
   type hgcFlaggedData_2Darray is array (natural range <>) of hgcFlaggedData_cluOut;
 
   --signal sdist_flaggedWordIn  : hgcFlaggedWord;
   signal sdist_flaggedDataOut : hgcFlaggedData(71 downto 0);
-  signal sdist_bxCounter      : natural_array(71 downto 0);
+  --signal sdist_bxCounter      : natural_array(71 downto 0);
   signal sdist_weSeed         : std_logic_2Darray(71 downto 0);
 
   -----------------------------------------------------------------------------
@@ -81,8 +82,12 @@ architecture behavioral of MainProcessorTop is
   --signal clu_send           : std_logic;
   signal clu_seedAcquired   : std_logic_2Darray(71 downto 0);
   signal clu_readyToAcquire : std_logic_2Darray(71 downto 0);
+  signal clu_readyToSend    : std_logic_2Darray(71 downto 0);
+  signal clu_send           : std_logic_2Darray(71 downto 0);
   signal clu_sent           : std_logic_2Darray(71 downto 0);
+  signal clu_flaggedDataIn  : hgcFlaggedData(71 downto 0);
   signal clu_flaggedDataOut : hgcFlaggedData_2Darray(71 downto 0);
+  --signal clu_flaggedDataOut : hgcFlaggedData(71 downto 0);
 
   -------------------------------------------------------------------------------
   -- helpers  
@@ -98,6 +103,7 @@ begin
   e_seedinglinks : entity work.Seedinglinks
     port map (
       clk             => clk,
+      rst             => '1',
       energyThreshold => thr,
       linksIn         => linksIn,
       flaggedDataOut  => flaggedData
@@ -115,8 +121,8 @@ begin
         rst            => '1',
         flaggedWordIn  => flaggedData(i_link),
         flaggedWordOut => delayed_flaggedDataOut(i_link),
-        EOE            => ddelay_EOE(i_link),
-        we             => ddelay_we(i_link)
+        EOE            => ddelay_EOE(i_link)
+--        we             => ddelay_we(i_link)
         );
 
     -- distribute the seeds among the clusters
@@ -128,11 +134,25 @@ begin
         clk            => clk,
         rst            => '1',
         flaggedWordIn  => flaggedData(i_link),
-        flaggedWordOut => sdist_flaggedDataOut(i_link),
-        bxCounter      => sdist_bxCounter(i_link),
-        weSeed         => sdist_weSeed(i_link)
+        flaggedWordOut => clu_flaggedDataIn(i_link),--sdist_flaggedDataOut(i_link),
+        --bxCounter      => sdist_bxCounter(i_link),
+        enaClusters    => sdist_weSeed(i_link)
         );
-
+    
+--    -- distribute the seeds among the clusters
+--    e_dataDistributor : entity work.seedDistributor
+--      generic map (
+--        nClusters => nClusters
+--        )
+--      port map (
+--        clk            => clk,
+--        rst            => '1',
+--        flaggedWordIn  => delayed_flaggedDataOut(i_link),
+--        flaggedWordOut => clu_flaggedDataIn(i_link),
+--        --bxCounter      => sdist_bxCounter(i_link),
+--        we             => sdist_weSeed(i_link)
+--        );
+    
     ---------------------------------------------------------------------------
     -- clusters
     gen_clusters : for i_clu in nClusters-1 downto 0 generate
@@ -145,18 +165,24 @@ begin
         port map (
           clk                     => clk,
           rst                     => '1',
-          flaggedWordIn           => delayed_flaggedDataOut(i_link),
-          flaggedWordInForSeeding => sdist_flaggedDataOut(i_link),
-          weSeed                  => sdist_weSeed(i_link)(i_clu),
-          weWord                  => ddelay_we(i_link),
-          EOE                     => ddelay_EOE(i_link),
-          send                    => ddelay_EOE(i_link),
-          seedAcquired            => clu_seedAcquired(i_link)(i_clu),
+          enaSeed                 => sdist_weSeed(i_link)(i_clu),
+          seedingFlaggedWordIn    => clu_flaggedDataIn(i_link),
+          delayedFlaggedWordIn    => delayed_flaggedDataOut(i_link),
+          
+          --weWord                  => ddelay_we(i_link),
+          --EOE                     => ddelay_EOE(i_link),
+          send                    => clu_send(i_link)(i_clu),
+          --seedAcquired            => clu_seedAcquired(i_link)(i_clu),
           readyToAcquire          => clu_readyToAcquire(i_link)(i_clu),
+          readyToSend             => clu_readyToSend(i_link)(i_clu),
           sent                    => clu_sent(i_link)(i_clu),
-          flaggedDataOut          => clu_flaggedDataOut(i_link)(i_clu)
+          --flaggedDataOut          => clu_flaggedDataOut(i_link)(i_clu)
+          flaggedWordOut          => clu_flaggedDataOut(i_link)(i_clu)
           );
 
+      
+      clu_send(i_link)(i_clu) <= clu_readyToSend(i_link)(i_clu); 
+      
       --gen_rows : for i_row in 4 downto 0 generate
       --  helper_flaggedDataOut(i_link).word.valid       <= helper_flaggedDataOut(i_link).word.valid or clu_flaggedDataOut(i_link)(i_clu)(i_row).word.valid;
       --  helper_flaggedDataOut(i_link).word.address.row <= helper_flaggedDataOut(i_link).word.address.row or clu_flaggedDataOut(i_link)(i_clu)(i_row).word.address.row;
@@ -173,13 +199,21 @@ begin
   end generate gen_data_delay_links;
 
 
-  -- translate data from HGC to MP7 format 
-  e_hgc2mp7Out : entity work.hgc2mp7FlaggedData
+  e_hgc2mp7Out : entity work.hgc2mp7FlaggedWord
     port map (
-      --hgcFlaggedData => hgcDataOutDelayed,
+      hgcFlaggedWord => clu_flaggedDataOut(0)(0),--clu_flaggedDataOut(0)(0),
       --hgcFlaggedData => sdist_flaggedDataOut,
-      mp7Data => linksOut
+      mp7Word => linksOut(0)
       );
+
+  
+  -- translate data from HGC to MP7 format 
+  --e_hgc2mp7Out : entity work.hgc2mp7FlaggedData
+  --  port map (
+  --    hgcFlaggedData => clu_flaggedDataOut(0)(0),
+  --    --hgcFlaggedData => sdist_flaggedDataOut,
+  --    mp7Data => linksOut
+  --    );
 
 
 --  readProc: process (clk) is

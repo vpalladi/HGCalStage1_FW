@@ -23,8 +23,8 @@ entity seedDistributor is
     rst            : in  std_logic;
     flaggedWordIn  : in  hgcFlaggedWord;
     flaggedWordOut : out hgcFlaggedWord;
-    bxCounter      : out natural;
-    weSeed         : out std_logic_array(nClusters-1 downto 0)
+    --bxCounter      : out natural;
+    enaClusters    : out std_logic_array(nClusters-1 downto 0) := (others => '0')
     );
 
 end entity seedDistributor;
@@ -32,7 +32,7 @@ end entity seedDistributor;
 
 architecture seedDistributor_arch of seedDistributor is
 
-  signal internalBxCounter : natural := 0;
+  signal bxCounter : natural := 0;
   signal seedCounter       : natural;
 
 begin  -- architecture seedDistributore_arch
@@ -41,7 +41,7 @@ begin  -- architecture seedDistributore_arch
   -- exernal signals
   -----------------------------------------------------------------------------
 
-  bxCounter <= internalBxCounter;
+  --bxCounter <= internalBxCounter;
 
 
   -----------------------------------------------------------------------------
@@ -53,9 +53,9 @@ begin  -- architecture seedDistributore_arch
     if rising_edge(clk) then
 
       if rst = '0' then
-        internalBxCounter <= 0;
+        bxCounter <= 0;
       elsif flaggedWordIn.word.EOE = '1' then
-        internalBxCounter <= internalBxCounter + 1;
+        bxCounter <= bxCounter + 1;
       end if;
 
     end if;
@@ -66,37 +66,35 @@ begin  -- architecture seedDistributore_arch
  -- counting seeds and addressing clusters
  -----------------------------------------------------------------------------
 
-  process_seedCounter : process (clk, rst) is
-
+  flaggedWordOut <= flaggedWordIn;
+  
+  p_seedDistribution : process (clk, rst) is
     variable currentCluster : natural range 0 to nClusters-1 := 0;
-
+    --variable activeClustersMap : std_logic_array( nClusters-1 downto 0 ) := (others => '0');
   begin  -- process process_seedCounter
 
-    if rising_edge(clk) then
-
-      flaggedWordOut <= flaggedWordIn;
+    if rising_edge( clk ) then
 
       if rst = '0' then
-        seedCounter    <= 0;
         currentCluster := 0;
-        for i in 0 to nClusters-1 loop
-          weSeed( i ) <= '0';
-        end loop;
       elsif flaggedWordIn.seedFlag = '1' then
-        seedCounter            <= seedCounter + 1;
-        weSeed( currentCluster ) <= '1';
         if currentCluster = nClusters-1 then
           currentCluster := 0;         
         else
           currentCluster := currentCluster + 1;  
         end if;
       else
-        seedCounter    <= seedCounter;
         currentCluster := currentCluster;
-        for i in 0 to nClusters-1 loop
-          weSeed(i) <= '0';
-        end loop;
       end if;
+      
+      for i in 0 to nClusters-1 loop
+        if i = currentCluster then
+          enaClusters( i ) <= '1';  
+        else
+          enaClusters( i ) <= '0';
+        end if;
+      end loop;
+
     end if;
 
   end process;

@@ -30,22 +30,26 @@ entity cluster is
     );
 
   port (
-    clk                     : in std_logic;
-    rst                     : in std_logic;
-    flaggedWordIn           : in hgcFlaggedWord;
-    flaggedWordInForSeeding : in hgcFlaggedWord;
+    clk                  : in std_logic;
+    rst                  : in std_logic;
+    enaSeed              : in std_logic;  -- enable the seed writing 
+    seedingFlaggedWordIn : in hgcFlaggedWord;
+    delayedFlaggedWordIn : in hgcFlaggedWord;
+    --seedWordIn    : in hgcFlaggedWord;
 
-    weSeed : in std_logic;
-    weWord : in std_logic;
-    EOE    : in std_logic := '0';
-    send   : in std_logic;
+    --weSeed : in std_logic;
+    --weWord : in std_logic;
+    --EOE    : in std_logic := '0';
+    send : in std_logic;
 
-    seedAcquired   : out std_logic := '0';
+    --seedAcquired   : out std_logic := '0';
     readyToAcquire : out std_logic := '0';
+    readyToSend    : out std_logic := '0';
 
     sent           : out std_logic;
     --dataValid : out std_logic;
-    flaggedDataOut : out hgcFlaggedData(nRows-1 downto 0)
+    flaggedWordOut : out hgcFlaggedWord
+--    flaggedDataOut : out hgcFlaggedData(nRows-1 downto 0)
 
     );
 
@@ -55,166 +59,294 @@ end entity cluster;
 architecture arch_1 of cluster is
 
   -- occupancy matrix
-  signal clusterOccupancy : std_logic_matrix(0 to nRows-1, 0 to nColumns-1) := (others => (others => '0'));
-  signal clusterComputed  : std_logic_matrix(0 to nRows-1, 0 to nColumns-1) := (others => (others => '0'));
+  signal occupancy         : std_logic_matrix(0 to nRows-1, 0 to nColumns-1) := (others => (others => '0'));
+  signal occupancyComputed : std_logic_matrix(0 to nRows-1, 0 to nColumns-1) := (others => (others => '0'));
 
-  -- delayed signals
-  signal internalFlaggedWordIn   : hgcFlaggedWord;
-  signal internalFlaggedWordIn_1 : hgcFlaggedWord;
+  -- flaggedWord in and flaggedSeedWord
+  signal flaggedWordIn   : hgcFlaggedWord;
+  signal flaggedSeedWord : hgcFlaggedWord := HGCFLAGGEDWORD_NULL;
 
   -- types
   type std_logic_array is array (nRows-1 downto 0) of std_logic;
   type std_logic_vector_array is array (nRows-1 downto 0) of std_logic_vector(2 downto 0);
 
+  signal row_flaggedDataOut : hgcFlaggedData(nRows-1 downto 0);
   signal row_flaggedWordIn  : hgcFlaggedData(nRows-1 downto 0);  -- := (others => HGCWORDDATA_NULL);
   signal row_we             : std_logic_array;
   signal row_send           : std_logic_array;
+  signal row_sent           : std_logic_array;
   signal row_flaggedWordOut : hgcFlaggedData(nRows-1 downto 0);  -- := (others => HGCWORDDATA_NULL);
   signal row_dataValid      : std_logic_array;
---  signal row_sent       : std_logic_array;
-
-  signal flaggedSeedWord : hgcFlaggedWord := HGCFLAGGEDWORD_NULL;
+  --signal row_dataValid      : std_logic_vector(nRows-1 downto 0); 
 
   -- internals
-  --signal internalSent         : std_logic := '0';
-  signal internalSeedAcquired : std_logic := '0';
+  signal seedAcquired : std_logic := '0';
+  signal detectedEOE  : std_logic := '0';
 
   -- computing
   signal compute    : std_logic := '0';
   signal computed   : std_logic := '0';
   signal comp_clean : std_logic := '0';
+
   -- fsm
   type fsm is (fsm_waitingSeed, fsm_waitingEndOfFrame, fsm_acquiringWords, fsm_computing, fsm_waitingSend, fsm_sending, fsm_sent, fsm_resetting);
-  signal state      : fsm;
+  signal state : fsm;
 
   -- reset singals
   signal resetDone : std_logic := '0';
 
 begin  -- architecture arch_1
 
-  -- delay the internalFlaggerWordIn
-  p_delay : process (clk) is
-  begin
-    if rising_edge(clk) then            -- rising clock edge
-      internalFlaggedWordIn_1 <= internalFlaggedWordIn;
-    end if;
-    
-  end process;
 
   -----------------------------------------------------------------------------
-  -- ports
-  -----------------------------------------------------------------------------
-  seedAcquired <= internalSeedAcquired;
-
-  -------------------------------------------------------------------------------
-  -- chose the right input 
-  -------------------------------------------------------------------------------
-  internalFlaggedWordIn <= flaggedWordIn when internalSeedAcquired = '1' else
-                           flaggedWordInForSeeding;
-
-  -----------------------------------------------------------------------------
-  -- Matrix rows generate
+  -- flaggedWordIn handling
   -----------------------------------------------------------------------------
 
-  generates_rows : for i_row in nRows-1 to 0 generate
-
-    inst_cluster_row : entity work.clusterRow
-      generic map (
-        nColumns => nColumns
-        )
-      port map (
-        clk               => clk,
-        flaggedSeedWordIn => flaggedSeedWord,
-        flaggedWordIn     => row_flaggedWordIn(i_row),
-        we                => row_we(i_row),
-        send              => row_send(i_row),
-        flaggedWordOut    => row_flaggedWordOut(i_row)
-       --dataValid         => row_dataValid(i_row),
---        sent          => row_sent(i_row)
-        );
-
-    row_flaggedWordOut(i_row).word.address.row <= std_logic_vector(to_signed(i_row, 4) + signed(flaggedSeedWord.word.address.row) - to_signed((nRows-1)/2, 4));
-    flaggedDataOut(i_row)                      <= row_flaggedWordOut(i_row);
-    row_flaggedWordIn(i_row)                   <= internalFlaggedWordIn_1;
-    row_send(i_row)                            <= '1' when state = fsm_sending else
-                       '0';
-    --dataValid <= row_dataValid(i_row);
-
-  end generate generates_rows;
+  flaggedWordIn <= seedingFlaggedWordIn when detectedEOE = '0' else
+                   delayedFlaggedWordIn when detectedEOE = '1' and delayedFlaggedWordIn.bxId = flaggedSeedWord.bxId else
+                   HGCFLAGGEDWORD_NULL;
 
 
   -------------------------------------------------------------------------------
   -- acquire the seed 
   -------------------------------------------------------------------------------
 
-  flaggedSeedWord <= flaggedWordIn when weSeed = '1' else
-                     HGCFLAGGEDWORD_NULL when state = fsm_sent else
-                     flaggedSeedWord;
-  internalSeedAcquired <= '1' when weSeed = '1' else
-                          '0' when state = fsm_sent else
-                          internalSeedAcquired;
-
-
-  -----------------------------------------------------------------------------
-  -- addressing the rows
-  -----------------------------------------------------------------------------
-
-  process_addressing : process (clk) is
-    variable integer_row_addr : integer := 0;
-    variable integer_col_addr : integer := 0;
-    variable L                : line;
+  p_acquisition : process (clk) is
+    variable row_addr : integer   := 0;
+    variable col_addr : integer   := 0;
+    variable weSeed   : std_logic := '0';
+    variable weWord   : std_logic := '0';
   begin
+
     if rising_edge(clk) then
 
-      if weSeed = '1' then
-        integer_row_addr := (nRows-1)/2;
-        integer_col_addr := (nColumns-1)/2;
+      -- EOE
+      if rst = '0' or state = fsm_sent then
+        detectedEOE <= '0';
+      elsif flaggedWordIn.word.EOE = '1' and flaggedWordIn.bxId = flaggedSeedWord.bxId and enaSeed = '0' then
+        detectedEOE <= '1';
       else
-        integer_row_addr := to_integer(unsigned(flaggedWordIn.word.address.row))-to_integer(unsigned(flaggedSeedWord.word.address.row)) + (nRows-1)/2;
-        integer_col_addr := to_integer(unsigned(flaggedWordIn.word.address.col))-to_integer(unsigned(flaggedSeedWord.word.address.col)) + (nColumns-1)/2;
+        detectedEOE <= detectedEOE;
       end if;
 
---      WRITE(L, to_integer(unsigned(flaggedWordIn.address.row)) );
---      WRITE(L, string' (" ") );
---      WRITE(L, to_integer(unsigned(flaggedWordIn.address.col)) );
---      WRITE(L, string' (" - ") );
---      WRITE(L, to_integer(unsigned(flaggedSeedWord.address.row)) );
---      WRITE(L, string' (" ") );
---      WRITE(L, to_integer(unsigned(flaggedSeedWord.address.col)) );
---      WRITE(L, string' (" - ") );
---            
---      WRITE(L, integer_row_addr );
---      WRITE(L, string' (" ") );
---      WRITE(L, integer_col_addr );
---      WRITELINE(OUTPUT, L);
+      -- seed
+      if rst = '0' or state = fsm_sent then
+        flaggedSeedWord <= HGCFLAGGEDWORD_NULL;
+        seedAcquired    <= '0';
+        weSeed          := '0';
+        weWord          := '0';
+      elsif flaggedWordIn.seedFlag = '1' and enaSeed = '1' and detectedEOE = '0' then
+        flaggedSeedWord <= flaggedWordIn;
+        seedAcquired    <= '1';
+        weSeed          := '1';
+        weWord          := '0';
+      elsif flaggedWordIn.dataFlag = '1' and flaggedWordIn.word.valid = '1' and detectedEOE = '1' then
+        flaggedSeedWord <= flaggedSeedWord;
+        seedAcquired    <= seedAcquired;
+        weSeed          := '0';
+        weWord          := '1';
+      else
+        flaggedSeedWord <= flaggedSeedWord;
+        seedAcquired    <= seedAcquired;
+        weSeed          := '0';
+        weWord          := '0';
+      end if;
 
+      -- addressing the rows
+      if weSeed = '1' then  -- seed is placed in the cluster's centre
+        row_addr := ( nRows-1 )/2;
+        col_addr := ( nColumns-1 )/2;
+      elsif flaggedWordIn.word.address.wafer = "000" then
+        row_addr := 4  + to_integer( unsigned(flaggedWordIn.word.address.row) ) - to_integer( unsigned(flaggedSeedWord.word.address.row) ) + ( nRows-1 )/2;
+        col_addr := 16 + to_integer( unsigned(flaggedWordIn.word.address.col) ) - to_integer( unsigned(flaggedSeedWord.word.address.col) ) + ( nColumns-1 )/2;
+      elsif flaggedWordIn.word.address.wafer = "001" then
+        row_addr :=      to_integer( unsigned(flaggedWordIn.word.address.row) ) - to_integer( unsigned(flaggedSeedWord.word.address.row) ) + ( nRows-1 )/2;
+        col_addr := 8  + to_integer( unsigned(flaggedWordIn.word.address.col) ) - to_integer( unsigned(flaggedSeedWord.word.address.col) ) + ( nColumns-1 )/2;
+      elsif flaggedWordIn.word.address.wafer = "010" then
+        row_addr := 8  + to_integer( unsigned(flaggedWordIn.word.address.row) ) - to_integer( unsigned(flaggedSeedWord.word.address.row) ) + ( nRows-1 )/2;
+        col_addr := 12 + to_integer( unsigned(flaggedWordIn.word.address.col) ) - to_integer( unsigned(flaggedSeedWord.word.address.col) ) + ( nColumns-1 )/2;
+      elsif flaggedWordIn.word.address.wafer = "011" then
+        row_addr := 4  + to_integer( unsigned(flaggedWordIn.word.address.row) ) - to_integer( unsigned(flaggedSeedWord.word.address.row) ) + ( nRows-1 )/2;
+        col_addr := 4  + to_integer( unsigned(flaggedWordIn.word.address.col) ) - to_integer( unsigned(flaggedSeedWord.word.address.col) ) + ( nColumns-1 )/2;
+      elsif flaggedWordIn.word.address.wafer = "100" then
+        row_addr := 12 + to_integer( unsigned(flaggedWordIn.word.address.row) ) - to_integer( unsigned(flaggedSeedWord.word.address.row) ) + ( nRows-1 )/2;
+        col_addr := 8  + to_integer( unsigned(flaggedWordIn.word.address.col) ) - to_integer( unsigned(flaggedSeedWord.word.address.col) ) + ( nColumns-1 )/2;
+      elsif flaggedWordIn.word.address.wafer = "101" then
+        row_addr := 8  + to_integer( unsigned(flaggedWordIn.word.address.row) ) - to_integer( unsigned(flaggedSeedWord.word.address.row) ) + ( nRows-1 )/2;
+        col_addr :=      to_integer( unsigned(flaggedWordIn.word.address.col) ) - to_integer( unsigned(flaggedSeedWord.word.address.col) ) + ( nColumns-1 )/2;
 
-      we_rows : for irow in 0 to nRows-1 loop
+--        row_addr := to_integer( unsigned(flaggedWordIn.word.address.row) ) - to_integer( unsigned(flaggedSeedWord.word.address.row) ) + ( nRows-1 )/2;
+--        col_addr := to_integer( unsigned(flaggedWordIn.word.address.col) ) - to_integer( unsigned(flaggedSeedWord.word.address.col) ) + ( nColumns-1 )/2;
+--      else
+--        row_addr := to_integer( unsigned(flaggedWordIn.word.address.row) ) - to_integer( unsigned(flaggedSeedWord.word.address.row) ) + ( nRows-1 )/2;
+--        col_addr := to_integer( unsigned(flaggedWordIn.word.address.col) ) - to_integer( unsigned(flaggedSeedWord.word.address.col) ) + ( nColumns-1 )/2;
+      end if;
+
+      -- loop to we the correct row
+      l_rows : for irow in 0 to nRows-1 loop
         if (weSeed = '1' or weWord = '1') and (state = fsm_waitingSeed or state = fsm_acquiringWords) then
-          if flaggedWordIn.word.valid = '1' and integer_row_addr = irow then
+          if flaggedWordIn.word.valid = '1' and row_addr = irow then
             row_we(irow) <= '1';
-
-            if integer_row_addr > -1 and integer_row_addr < nRows then
-              if integer_col_addr > -1 and integer_col_addr < nColumns then
-
-                clusterOccupancy(integer_row_addr, integer_col_addr) <= '1';
+            if row_addr > -1 and row_addr < nRows then
+              if col_addr > -1 and col_addr < nColumns then
+                occupancy(row_addr, col_addr) <= '1';
               end if;
             end if;
           else
             row_we(irow) <= '0';
           end if;
+        elsif state = fsm_resetting then
+          row_we(irow) <= '0';
+          l_cols : for icol in 0 to nColumns-1 loop
+            occupancy(irow, icol) <= '0';
+          end loop l_cols;
         else
           row_we(irow) <= '0';
         end if;
-      end loop we_rows;
+      end loop l_rows;
 
     end if;
-  end process process_addressing;
+
+  end process p_acquisition;
+
+
+  -----------------------------------------------------------------------------
+  -- Data storage
+  -----------------------------------------------------------------------------
+
+  e_cluster_data: entity work.cluster_data
+    port map (
+      clk            => clk,
+      rst            => rst,
+      flaggedWordIn  => flaggedWordIn,
+      send           => send,
+      sent           => sent,
+      flaggedWordOut => flaggedWordOut
+    );
+
+--  g_rows : for i_row in 0 to nRows-1 generate
+--
+--    cluster_row : entity work.clusterRow
+--      generic map (
+--        nColumns => nColumns
+--        )
+--      port map (
+--        clk               => clk,
+--        flaggedSeedWordIn => flaggedSeedWord,
+--        flaggedWordIn     => flaggedWordIn,
+--        we                => row_we(i_row),
+--        send              => row_send(i_row),
+--        sent              => row_sent(i_row),
+--        flaggedWordOut    => row_flaggedDataOut(i_row),
+--        dataValid         => row_dataValid(i_row)
+--       -- sent          => row_sent(i_row)
+--        );
+
+--    flaggedWordOut <= row_flaggedDataOut(i_row) when row_dataValid(i_row) = '1' else
+--                      HGCFLAGGEDWORD_NULL;
+    
+    --row_flaggedWordOut(i_row).word.address.row <= std_logic_vector(to_signed(i_row, 4) + signed(flaggedSeedWord.word.address.row) - to_signed((nRows-1)/2, 4));
+    --flaggedDataOut(i_row) <= row_flaggedWordOut(i_row);
+    --row_flaggedWordIn(i_row) <= flaggedWordIn;
+    --dataValid <= row_dataValid(i_row);
+
+--  end generate g_rows;
+
+  --  with row_dataValid select
+  --    flaggedWordOut <=
+  --    row_flaggedDataOut(0) when "00001",
+  --    row_flaggedDataOut(1) when "00010",
+  --    row_flaggedDataOut(2) when "00100",
+  --    row_flaggedDataOut(3) when "01000",
+  --    row_flaggedDataOut(4) when "10000",
+  --    HGCFLAGGEDWORD_NULL               when others;
+  
+  flaggedWordOut <= row_flaggedDataOut(0) when row_dataValid(0) = '1' else
+                    row_flaggedDataOut(1) when row_dataValid(1) = '1' else
+                    row_flaggedDataOut(2) when row_dataValid(2) = '1' else
+                    row_flaggedDataOut(3) when row_dataValid(3) = '1' else
+                    row_flaggedDataOut(4) when row_dataValid(4) = '1' else
+                    HGCFLAGGEDWORD_NULL;
+  -- send signal to single rows
+  row_send(0) <= '1' when send = '1' else '0';
+  l_send_rows : for i_row in 1 to nRows-1 generate
+    row_send(i_row) <= '1' when row_sent(i_row-1) = '1' else '0';
+  end generate;
+
+  -----------------------------------------------------------------------------
+  -- addressing the rows
+  -----------------------------------------------------------------------------
+
+--  process_addressing : process (clk) is
+--    variable row_addr : integer := 0;
+--    variable col_addr : integer := 0;
+--    variable L                : line;
+----    variable weSeed : std_logic := '0';
+----    variable weData : std_logic := '0';     
+--  begin
+--    if rising_edge(clk) then
+--
+--      -- is data or is seed 
+----      if flaggedWordIn.seedFlag = '1' and enaSeed = '1' then
+----        weSeed := '1';
+----        weWord := '0';
+----      elsif flaggedWordIn.dataFlag = '1' and flaggedWordIn.word.valid = '1' then
+----        weSeed := '0';
+----        weWord := '1';
+----      else
+----        weSeed := '0';
+----        weWord := '0';
+----      end if;
+--
+--      -- where to write
+--      if weSeed = '1' then
+--        row_addr := (nRows-1)/2;
+--        col_addr := (nColumns-1)/2;
+--      else
+--        row_addr := to_integer(unsigned(flaggedWordIn.word.address.row))-to_integer(unsigned(flaggedSeedWord.word.address.row)) + (nRows-1)/2;
+--        col_addr := to_integer(unsigned(flaggedWordIn.word.address.col))-to_integer(unsigned(flaggedSeedWord.word.address.col)) + (nColumns-1)/2;
+--      end if;
+--
+----      WRITE(L, to_integer(unsigned(flaggedWordIn.address.row)) );
+----      WRITE(L, string' (" ") );
+----      WRITE(L, to_integer(unsigned(flaggedWordIn.address.col)) );
+----      WRITE(L, string' (" - ") );
+----      WRITE(L, to_integer(unsigned(flaggedSeedWord.address.row)) );
+----      WRITE(L, string' (" ") );
+----      WRITE(L, to_integer(unsigned(flaggedSeedWord.address.col)) );
+----      WRITE(L, string' (" - ") );
+----            
+----      WRITE(L, row_addr );
+----      WRITE(L, string' (" ") );
+----      WRITE(L, col_addr );
+----      WRITELINE(OUTPUT, L);
+--
+--      -- addressing rows
+--      we_rows : for irow in 0 to nRows-1 loop
+--        if (weSeed = '1' or weWord = '1') and (state = fsm_waitingSeed or state = fsm_acquiringWords) then
+--          if flaggedWordIn.word.valid = '1' and row_addr = irow then
+--            row_we(irow) <= '1';
+--            if row_addr > -1 and row_addr < nRows then
+--              if col_addr > -1 and col_addr < nColumns then
+--                occupancy(row_addr, col_addr) <= '1';
+--              end if;  
+--            end if;
+--          else
+--            row_we(irow) <= '0';
+--          end if;
+--        else
+--          row_we(irow) <= '0';
+--        end if;
+--      end loop we_rows;
+--
+--    end if;
+--  end process process_addressing;
 
 
   -----------------------------------------------------------------------------
   -- computing 
   -----------------------------------------------------------------------------
+
   e_computeClu : entity work.computeClu
     generic map (
       nRows    => nRows,
@@ -224,21 +356,21 @@ begin  -- architecture arch_1
       clk          => clk,
       clean        => comp_clean,
       compute      => compute,
-      occupancyMap => clusterOccupancy,
+      occupancyMap => occupancy,
       computed     => computed,
-      cluster      => clusterComputed
+      cluster      => occupancyComputed
       );
 
 
   -----------------------------------------------------------------------------
-  -----------------------------------------------------------------------------
+  -- txt output 
   -----------------------------------------------------------------------------
 
   process_writeOutput : process (clk) is
-    variable integer_row_addr : integer   := 0;
-    variable integer_col_addr : integer   := 0;
-    variable L                : line;
-    variable printed          : std_logic := '0';
+    variable row_addr : integer   := 0;
+    variable col_addr : integer   := 0;
+    variable L        : line;
+    variable printed  : std_logic := '0';
   begin
     if rising_edge(clk) then
       if state = fsm_sending and printed = '0' then
@@ -257,8 +389,8 @@ begin  -- architecture arch_1
           WRITE(L, (irow + to_integer(unsigned(flaggedSeedWord.word.address.row)) - (nRows-1)/2));
           WRITE(L, string' (" "));
           for icol in 0 to nColumns-1 loop
---              WRITE(L, clusterOccupancy(irow, icol));
-            WRITE(L, clusterComputed(irow, icol));
+            --WRITE(L, occupancy(irow, icol));
+            WRITE(L, occupancyComputed(irow, icol));
             WRITE(L, string' (" "));
           end loop;
           WRITELINE(OUTPUT, L);
@@ -268,9 +400,6 @@ begin  -- architecture arch_1
 
     end if;
   end process process_writeOutput;
-  -----------------------------------------------------------------------------
-  -----------------------------------------------------------------------------
-  -----------------------------------------------------------------------------
 
   -----------------------------------------------------------------------------
   -- FSM
@@ -285,7 +414,7 @@ begin  -- architecture arch_1
         -- waiting seed
         when fsm_waitingSeed =>
           row_rd_addr := 0;
-          if internalSeedAcquired = '1' then
+          if seedAcquired = '1' then
             state <= fsm_waitingEndOfFrame;
           elsif rst = '0' then
             state <= fsm_waitingSeed;
@@ -294,7 +423,7 @@ begin  -- architecture arch_1
           end if;
         -- waintg end of frame
         when fsm_waitingEndOfFrame =>
-          if weWord = '1' then
+          if detectedEOE = '1' then
             state <= fsm_acquiringWords;
           elsif send = '1' then
             state <= fsm_sending;
@@ -305,7 +434,7 @@ begin  -- architecture arch_1
           end if;
         -- acquiring words
         when fsm_acquiringWords =>
-          if EOE = '1' then
+          if flaggedWordIn.bxId = flaggedSeedWord.bxId and flaggedWordIn.word.EOE = '1' then
             state <= fsm_computing;
           elsif rst = '0' then
             state <= fsm_resetting;
@@ -330,9 +459,19 @@ begin  -- architecture arch_1
           else
             state <= state;
           end if;
-        -- sending
+          -- sending
+--        when fsm_sending =>
+--          if row_rd_addr = nColumns-1 then
+--            state <= fsm_sent;
+--          elsif rst = '0' then
+--            state <= fsm_resetting;
+--          else
+--            row_rd_addr := row_rd_addr+1;
+--            state       <= state;
+--          end if;
+
         when fsm_sending =>
-          if row_rd_addr = nColumns-1 then
+          if row_sent(nRows-1) = '1' then
             state <= fsm_sent;
           elsif rst = '0' then
             state <= fsm_resetting;
@@ -350,8 +489,12 @@ begin  -- architecture arch_1
     end if;
   end process process_fsm;
 
+  readyToSend <= '1' when state = fsm_waitingSend else
+                 '0';
+
   sent <= '1' when state = fsm_sent else
           '0';
+
   readyToAcquire <= '1' when state = fsm_waitingSeed or state = fsm_waitingEndOfFrame or state = fsm_acquiringWords else
                     '0';
   compute <= '1' when state = fsm_computing else

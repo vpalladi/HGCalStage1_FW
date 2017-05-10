@@ -17,6 +17,8 @@ entity SeedingLinks is
   port (
 
     clk : in std_logic;
+    rst : in std_logic;
+    
     energyThreshold : in std_logic_vector(7 downto 0);
     
     linksIn         : in  ldata  ( 71 DOWNTO 0 )        := (others => LWORD_NULL);
@@ -35,6 +37,7 @@ begin  -- architecture behavioral
     flagSeed : entity work.SeedingLink
       port map (
         clk                => clk,
+        rst                => rst,
         energyThreshold    => energyThreshold,
         mp7wordIn          => linksIn(ilink),
         flaggedWordOut     => flaggedDataOut(ilink)

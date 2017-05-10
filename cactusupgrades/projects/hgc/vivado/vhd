@@ -69,10 +69,7 @@
 /../../../components/opencores_i2c/firmware/hdl/i2c_master_byte_ctrl.vhd
 /../../../components/opencores_i2c/firmware/hdl/i2c_master_registers.vhd
 /../../../components/hgc_datapath/firmware/hdl/hgc_data_types.vhd
-/../../../projects/hgc/firmware/hdl/SeedingLink.vhd
 /../../../components/hgc_datapath/firmware/hdl/mp72hgc.vhd
-/../../../projects/hgc/firmware/hdl/ComputeClustering.vhd
-/../../../projects/hgc/firmware/hdl/ClusterRow.vhd
 /../../../components/ipbus_slaves/firmware/hdl/ipbus_ctrlreg_v.vhd
 /../../../components/ipbus_slaves/firmware/hdl/ipbus_reg_v.vhd
 /../../../components/amc13_link_7s/firmware/hdl/release-1.17/crc16D16.vhd
@@ -120,10 +117,6 @@
 /../../../components/ipbus_core/firmware/hdl/udp_build_payload.vhd
 /../../../components/ipbus_core/firmware/hdl/udp_build_arp.vhd
 /../../../components/ipbus_core/firmware/hdl/udp_buffer_selector.vhd
-/../../../projects/hgc/firmware/hdl/SeedingLinks.vhd
-/../../../projects/hgc/firmware/hdl/SeedDistributor.vhd
-/../../../projects/hgc/firmware/hdl/DataVariableDelay.vhd
-/../../../projects/hgc/firmware/hdl/Cluster.vhd
 /../../../components/hgc_datapath/firmware/hdl/hgc2mp7.vhd
 /../../../components/amc13_link_7s/firmware/hdl/release-1.17/DAQ_Link_7S.vhd
 /../../../components/ipbus_util/firmware/hdl/big_fifo_72.vhd

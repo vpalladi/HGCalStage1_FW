@@ -42,13 +42,14 @@ package hgc_data_types is
   type hgcFlaggedWord is
   record
     word : hgcWord;
+    bxId : std_logic_vector(7 downto 0);
     dataFlag : std_logic;
     seedFlag : std_logic;
   end record;
 
   type hgcFlaggedData is array(natural range <>) of hgcFlaggedWord;
 
-  constant HGCFLAGGEDWORD_NULL  : hgcFlaggedWord             := ( HGCWORD_NULL, '0', '0' );
+  constant HGCFLAGGEDWORD_NULL  : hgcFlaggedWord             := ( HGCWORD_NULL, (others => '0'), '0', '0' );
   --constant HGCFLAGGEDWORD_NEWBX : hgcFlaggedWord             := ('0', HGCADDR_FULL, (others => '1'), '1', '1');
   constant HGCFLAGGEDDATA_NULL  : hgcFlaggedData(0 downto 0) := (0 => HGCFLAGGEDWORD_NULL);
 

@@ -40,6 +40,8 @@ all:
 
 	vcom -explicit  $(CACTUS_COMPONENTS)/hgc_datapath/firmware/hdl/mp72hgc.vhd
 	vcom -explicit  $(CACTUS_COMPONENTS)/hgc_datapath/firmware/hdl/hgc2mp7.vhd
+	vcom -explicit  $(CACTUS_COMPONENTS)/hgc_datapath/firmware/hdl/hgc2ram.vhd
+	vcom -explicit  $(CACTUS_COMPONENTS)/hgc_datapath/firmware/hdl/ram2hgc.vhd
 #	vcom -explicit  $(CACTUS_COMPONENTS)/hgc_datapath/firmware/hdl/hgc_functions.vhd
 #	vcom -explicit  $(CACTUS_COMPONENTS)/hgc_datapath/firmware/hdl/hgc_procedures.vhd
 
@@ -54,7 +56,8 @@ all:
 #
 	vcom -explicit  $(IP_SOURCES)/variable_data_delay/sim/variable_data_delay.vhd
 	vcom -explicit  $(IP_SOURCES)/fifo_read_pointers_delay_ram/sim/fifo_read_pointers_delay_ram.vhd
-	vcom -explicit  $(IP_SOURCES)/clu_dist_mem_row/sim/clu_dist_mem_row.vhd
+	vcom -explicit  $(IP_SOURCES)/clu_data/sim/clu_data.vhd
+#        vcom -explicit  $(IP_SOURCES)/clu_dist_mem_row/sim/clu_dist_mem_row.vhd
 
 #
 ## project (common) 
@@ -80,7 +83,7 @@ all:
 
 # cluster 
 	vcom -explicit  $(HDL_SOURCES)/ComputeClustering.vhd
-	vcom -explicit  $(HDL_SOURCES)/ClusterRow.vhd
+#	vcom -explicit  $(HDL_SOURCES)/ClusterRow.vhd
 	vcom -explicit  $(HDL_SOURCES)/Cluster.vhd
 
 #

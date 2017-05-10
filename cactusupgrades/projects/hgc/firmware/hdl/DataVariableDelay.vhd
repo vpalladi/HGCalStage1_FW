@@ -21,7 +21,7 @@ entity DataVariableDelay is
     rst            : in  std_logic;
     flaggedWordIn  : in  hgcFlaggedWord;
     flaggedWordOut : out hgcFlaggedWord;
-    we             : out std_logic;
+    --we             : out std_logic;
     EOE            : out std_logic
     );
 
@@ -54,34 +54,29 @@ architecture behavioural of DataVariableDelay is
   signal bxCounter : natural := 0;
 --  signal new_bx_detected    : std_logic := '0';
   signal firstEventDetected : std_logic := '0';
-  signal mp7WordToRam       : lword     := LWORD_NULL;
-  signal mp7WordFromRam     : lword     := LWORD_NULL;
+  signal wordToRam    : std_logic_vector(31 downto 0) := (others => '0');
+  signal wordFromRam  : std_logic_vector(31 downto 0) := (others => '0');
 
 begin  -- architecture behavioural
 
   -----------------------------------------------------------------------------
   -- ports assignemets
   -----------------------------------------------------------------------------
-  --EOE <= new_bx_detected;
-  --we <= '1' when flaggedWordOut.valid = '1' else
-  --'0';
-  we  <= '1' when data_ram_doutb(16) = '1' else
-        '0';
-  --we <= '1';
+  --we  <= '1' when data_ram_doutb(16) = '1' else '0';
   bxCounter <= bxCounter+1 when rising_edge(clk) and flaggedWordIn.word.SOE = '1' else bxCounter;
   
   -----------------------------------------------------------------------------
   -- helper to define the input and output to/from RAM
   -----------------------------------------------------------------------------
-  e_toRAM : entity work.hgc2mp7FlaggedWord
+  e_toRAM : entity work.hgcFlagged2ram
     port map(
       hgcFlaggedWord => flaggedWordIn,
-      mp7Word        => mp7WordToRam
+      ram            => wordToRam
       );
 
-  e_fromRAM : entity work.mp72hgcFlaggedWord
+  e_fromRAM : entity work.ram2hgcFlaggedWord
     port map(
-      mp7Word        => mp7WordFromRam,
+      ram            => wordFromRam,
       hgcFlaggedWord => flaggedWordOut
       );
 
@@ -98,12 +93,13 @@ begin  -- architecture behavioural
   p_ram_wr : process (clk) is
      variable into_event : std_logic := '0';
      variable into_extended_event : std_logic := '0';
+     variable read_ram : std_logic := '0';
 --     variable enable_ram_rd : std_logic := '0';       
   begin
     if rising_edge(clk) then
 
       -- ram port a input
-      data_ram_dina <= mp7WordToRam.data;
+      data_ram_dina <= wordToRam;
       
       -- into_event and into_extended_event variables
       if flaggedWordIn.word.SOE = '1' then
@@ -132,11 +128,14 @@ begin  -- architecture behavioural
         data_ram_addr_wr <= data_ram_addr_wr + 1;
       end if;
 
-      -- read pointer increment 
-      if flaggedWordIn.word.EOE = '1' and data_ram_addr_wr /= data_ram_addr_rd then
+      -- read pointer increment
+      if flaggedWordIn.word.EOE = '1' then
+        read_ram := '1';
+      end if;
+      if read_ram = '1' and data_ram_addr_wr /= data_ram_addr_rd then
         data_ram_addr_rd <= data_ram_addr_rd + 1;
       elsif data_ram_addr_wr = data_ram_addr_rd then
-        data_ram_addr_rd <= data_ram_addr_rd
+        data_ram_addr_rd <= data_ram_addr_rd;
       end if;
             
     end if;
@@ -156,7 +155,7 @@ begin  -- architecture behavioural
       doutb => data_ram_doutb
       );
   
-  mp7WordFromRam.data <= data_ram_doutb;
+  wordFromRam <= data_ram_doutb;
 
   
   -----------------------------------------------------------------------------

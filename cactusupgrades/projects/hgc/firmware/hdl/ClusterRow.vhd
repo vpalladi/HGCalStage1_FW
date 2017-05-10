@@ -35,8 +35,9 @@ entity clusterRow is
     we   : in std_logic;
     send : in std_logic;
 
-    flaggedWordOut : out hgcFlaggedWord
-    --dataValid      : out std_logic := '0';
+    sent : out std_logic;
+    flaggedWordOut : out hgcFlaggedWord;
+    dataValid      : out std_logic := '0'
 --    sent       : out std_logic := '0'
 
     );
@@ -49,24 +50,28 @@ architecture arch_cluster_1 of clusterRow is
 -- type fsm_state is (fsm_acquisition, fsm_sending, fsm_sent);
 -- signal state : state := fsm_acquisition;
 
+  signal internalSent : std_logic := '0';
+  
   signal erase_ptr    : std_logic_vector(3 downto 0);
   signal erase        : std_logic;
   
   -- distributed mem
   signal dmem_a_wr    : std_logic_vector(3 downto 0);
-  signal dmem_d_in    : std_logic_vector(8 downto 0);
+  signal dmem_d_in    : std_logic_vector(31 downto 0);
   signal dmem_a_rd    : std_logic_vector(3 downto 0);
   signal dmem_a_rd_1  : std_logic_vector(3 downto 0); 
   signal dmem_clk     : std_logic;
   signal dmem_we      : std_logic;
-  signal dmem_d_out_a : std_logic_vector(8 downto 0);
-  signal dmem_d_out_b : std_logic_vector(8 downto 0);
+  signal dmem_d_out_a : std_logic_vector(31 downto 0);
+  signal dmem_d_out_b : std_logic_vector(31 downto 0);
 
   --helpers
   --signal mp7WordFromDRAM : lword := LWORD_NULL;
   
 begin  -- architecture arch_cluster_1
 
+  sent <= internalSent;
+  
   -----------------------------------------------------------------------------
   -- distributed memory 
   -----------------------------------------------------------------------------
@@ -74,19 +79,40 @@ begin  -- architecture arch_cluster_1
   dmem_we   <= we or erase;
   dmem_a_wr <= '0' & flaggedWordIn.word.address.col-flaggedSeedWordIn.word.address.col+(nColumns-1)/2 when we = '1' else
                erase_ptr;               -- must be updated
-  dmem_d_in <= flaggedWordIn.seedFlag & flaggedWordIn.word.energy when we = '1' else
-               (others => '0');
-
+  --dmem_d_in <= flaggedWordIn.seedFlag & flaggedWordIn.word.energy when we = '1' else
+  --             (others => '0');
+  e_hgcFlagged2ram : entity work.hgcFlagged2ram
+    port map (
+      hgcFlaggedWord => flaggedWordIn,
+      ram            => dmem_d_in
+      );
+  
   -- handling the read pointer
   process_increment_rd_ptr : process (clk) is
+    variable increment_ptr : std_logic := '0';
   begin
     if rising_edge(clk) then
+
       if send = '1' then
+        increment_ptr := '1';
+        dataValid <= '1';
+      elsif internalSent = '1' then
+        increment_ptr := '0';
+        dataValid <= '0';
+      end if;
+      
+      if increment_ptr = '1' then
         dmem_a_rd <= std_logic_vector( unsigned(dmem_a_rd)+1 );
       else
         dmem_a_rd <= (others => '0');
       end if;
-      --dataValid <= send;
+
+      if dmem_a_rd = integer(nColumns) then
+        internalSent <= '1';
+      else
+        internalSent <= '0';
+      end if;
+        
     end if;
   end process process_increment_rd_ptr;
 
@@ -118,10 +144,15 @@ begin  -- architecture arch_cluster_1
  --     hgcFlaggedWord => flaggedWordOut
  --     );
   
- 
-  flaggedWordOut.word.energy   <= dmem_d_out_b(7 downto 0);
-  flaggedWordOut.seedFlag <= dmem_d_out_b(8);
-  flaggedWordOut.word.address.col <= dmem_a_rd(2 downto 0) + flaggedSeedWordIn.word.address.col - (nColumns-1)/2;
-  flaggedWordOut.word.valid    <= '1';
+  ram2hgcFlaggedWord_1: entity work.ram2hgcFlaggedWord
+    port map (
+      ram            => dmem_d_out_b,
+      hgcFlaggedWord => flaggedWordOut
+      );
+  
+  --flaggedWordOut.word.energy   <= dmem_d_out_b(7 downto 0);
+  --flaggedWordOut.seedFlag <= dmem_d_out_b(8);
+  --flaggedWordOut.word.address.col <= dmem_a_rd(2 downto 0) + flaggedSeedWordIn.word.address.col - (nColumns-1)/2;
+  --flaggedWordOut.word.valid    <= '1';
 
 end architecture arch_cluster_1;
