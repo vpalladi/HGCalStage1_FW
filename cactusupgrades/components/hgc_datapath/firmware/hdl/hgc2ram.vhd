@@ -23,7 +23,8 @@ end entity hgc2ram;
 architecture behavioural of hgc2ram is
 begin
 
-  ram <= hgcWord.EOE & hgcWord.SOE & hgcWord.energy & hgcWord.address.col & hgcWord.address.row & hgcWord.address.wafer & hgcWord.valid;
+--  ram <= hgcWord.EOE & hgcWord.SOE & hgcWord.energy & hgcWord.address.col & hgcWord.address.row & hgcWord.address.wafer & hgcWord.valid;
+    ram <= hgcWord.EOE & hgcWord.SOE & hgcWord.valid & hgcWord.energy & hgcWord.address.wafer & hgcWord.address.row & hgcWord.address.col;
 
 end architecture behavioural;
 

@@ -28,7 +28,8 @@ use work.LinkType.all;
 entity TestBench is
   generic(
 
-    sourcefile : string := "./data/out.mp7"
+    sourcefile : string := "./data/out.mp7";
+    destinationfile : string := "./results/out.mp7"
 
     );
 end TestBench;
@@ -74,6 +75,8 @@ begin
     variable L               : line;
     variable clk_count       : integer := -1;
 
+    --file out_csv : text open write_mode is "latency.csv";
+    
   begin
 
     if(RISING_EDGE(clk)) then
@@ -81,6 +84,12 @@ begin
 -- -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
       if(clk_count = -1) then
         SourceLinkDataFile(sourcefile, 0, 0, 0, 1000, DEBUG, reference_Links);  --For aggregated captures
+        --WRITE(L, string' ("sAcquired,") );
+        --WRITE(L, string' ("beginComputing,") );
+        --WRITE(L, string' ("endComputing,") );
+        --WRITE(L, string' ("beginSend,") );
+        --WRITE(L, string' ("endSend") );
+        --writeline( out_csv, L );
       end if;
 
       -- Link Stimulus 
@@ -104,10 +113,10 @@ begin
 
     end if;
   end process;
--- =========================================================================================================================================================================================
--- THE ALGORITHMS UNDER TEST
--- =========================================================================================================================================================================================
--- -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+---- =========================================================================================================================================================================================
+---- THE ALGORITHMS UNDER TEST
+---- =========================================================================================================================================================================================
+---- -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
   -- purpose: delay the input links 
   p_LinksInDelay : process (clk) is
@@ -118,32 +127,32 @@ begin
       linksIn_3 <= linksIn_2;
     end if;
   end process p_LinksInDelay;
---
---  
---  -- translate in hgc flagged words
---  mp72flagged : entity work.mp72hgcFlaggedWord
---    port map(
---      mp7Word        => linksIn(0),
---      hgcFlaggedWord => flaggedWordTranslate
---      );
---
---
---  
---  e_seedDistributor: entity work.seedDistributor
---    generic map (
---      nClusters => 10
---      )
---    port map (
---      clk            => clk,
---      rst            => '1',
---      flaggedWordIn  => flaggedWordTranslate,
---      flaggedWordOut => flaggedWordOut,
---      bxCounter      => bxCounter,
---      weSeed         => weSeed
---      );
+----
+----  
+----  -- translate in hgc flagged words
+----  mp72flagged : entity work.mp72hgcFlaggedWord
+----    port map(
+----      mp7Word        => linksIn(0),
+----      hgcFlaggedWord => flaggedWordTranslate
+----      );
+----
+----
+----  
+----  e_seedDistributor: entity work.seedDistributor
+----    generic map (
+----      nClusters => 10
+----      )
+----    port map (
+----      clk            => clk,
+----      rst            => '1',
+----      flaggedWordIn  => flaggedWordTranslate,
+----      flaggedWordOut => flaggedWordOut,
+----      bxCounter      => bxCounter,
+----      weSeed         => weSeed
+----      );
 
   
-  p_MainProcessor : entity work.MainProcessorTop
+  e_MainProcessor : entity work.MainProcessorTop
     port map(
       clk       => clk,
       linksIn   => linksIn_3,
@@ -152,9 +161,9 @@ begin
       ipbus_clk => ipbus_clk
       );
 
-  MP7CaptureFileWriterInstance1 : entity work.MP7CaptureFileWriter
+  e_MP7CaptureFileWriterInstance : entity work.MP7CaptureFileWriter
     generic map(
-      FileName      => string' ("output.txt"),
+      FileName      => destinationfile,
       DebugMessages => false
       )
     port map(clk, linksOut);

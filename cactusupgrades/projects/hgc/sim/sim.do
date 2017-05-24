@@ -2,13 +2,13 @@
 
 #restart -f
 
-add wave -label "CLK" -position insertpoint sim:/testbench/p_MainProcessor/clk
-add wave -position insertpoint sim:/testbench/p_MainProcessor/linksIn(0)
-add wave -position insertpoint sim:/testbench/p_MainProcessor/flaggedData(0)
+add wave -label "CLK" -position insertpoint sim:/testbench/e_MainProcessor/clk
+add wave -position insertpoint sim:/testbench/e_MainProcessor/linksIn(0)
+add wave -position insertpoint sim:/testbench/e_MainProcessor/flaggedData(0)
 add wave -position insertpoint sim:/testbench/linksOut(0)
-add wave -position insertpoint sim:/p_MainProcessor/linksOut(0)
-#add wave -position insertpoint sim:/testbench/p_MainProcessor/sdist_flaggedDataOut(0)
-#add wave -position insertpoint sim:/testbench/p_MainProcessor/sdist_bxCounter(0)
+add wave -position insertpoint sim:/e_MainProcessor/linksOut(0)
+#add wave -position insertpoint sim:/testbench/e_MainProcessor/sdist_flaggedDataOut(0)
+#add wave -position insertpoint sim:/testbench/e_MainProcessor/sdist_bxCounter(0)
 
 ######  Data variable Delay  ######
 set groupName "DataVariableDelay"
@@ -36,9 +36,9 @@ lappend signals "data_ram_addr_rd"
 
 foreach {signal} $signals {
     if { $signal == "data_ram_dina" || $signal == "data_ram_doutb" } { 
-        add wave -group $groupName -color "Gold" -label $signal -position insertpoint sim:/testbench/p_MainProcessor/gen_data_delay_links(0)/e_DataVariableDelay/$signal
+        add wave -group $groupName -color "Gold" -label $signal -position insertpoint sim:/testbench/e_MainProcessor/g_data_delay_links(0)/e_DataVariableDelay/$signal
     } else {
-        add wave -group $groupName -label $signal -position insertpoint sim:/testbench/p_MainProcessor/gen_data_delay_links(0)/e_DataVariableDelay/$signal
+        add wave -group $groupName -label $signal -position insertpoint sim:/testbench/e_MainProcessor/g_data_delay_links(0)/e_DataVariableDelay/$signal
     }
 }
 
@@ -55,28 +55,31 @@ lappend signals "enaClusters"
 #lappend signals ""
 
 foreach {signal} $signals {
-    add wave -group $groupName -label $signal -position insertpoint sim:/testbench/p_MainProcessor/gen_data_delay_links(0)/e_seedDistributor/$signal
+    add wave -group $groupName -label $signal -position insertpoint sim:/testbench/e_MainProcessor/g_data_delay_links(0)/e_seedDistributor/$signal
 }
 
 ######  Cluster  ######
 set groupName_0 "Cluster 0"
-set groupName_1 "Cluster 1"
+#set groupName_1 "Cluster 1"
 
 set signals {}
 lappend signals "flaggedWordIn"
-lappend signals "flaggedSeedWord"
+lappend signals "flaggedWordIn_1"
+lappend signals "flaggedWordSeed"
 lappend signals "state"
-lappend signals "enaSeed"
-lappend signals "detectedEOE"
-
+lappend signals "data_flaggedWordOut"
+## lappend signals "enaSeed"
+## lappend signals "detectedEOE"
+## 
 lappend signals "flaggedWordIn.word.address.row"
-lappend signals "flaggedSeedWord.word.address.row"
-lappend signals "p_acquisition/row_addr"
-
+lappend signals "flaggedWordSeed.word.address.row"
+ 
 lappend signals "flaggedWordIn.word.address.col"
-lappend signals "flaggedSeedWord.word.address.col"
-lappend signals "p_acquisition/col_addr"
+lappend signals "flaggedWordSeed.word.address.col"
 
+lappend signals "col"
+lappend signals "row"
+ 
 lappend signals "p_acquisition/weSeed"
 lappend signals "p_acquisition/weWord"
 
@@ -105,7 +108,7 @@ lappend signals "occupancyComputed"
 
 #lappend signals "p_acquisition/weSeed"
 #lappend signals "p_acquisition/weWord"
-#lappend signals "flaggedSeedWord.bxId"
+#lappend signals "flaggedWordSeed.bxId"
 #lappend signals "flaggedWordIn.word.address.row"
 #lappend signals "p_acquisition/row_addr"
 #lappend signals "flaggedWordIn.word.address.col"
@@ -119,13 +122,49 @@ lappend signals "occupancyComputed"
 #lappend signals "seedAcquired"
 
 foreach {signal} $signals {
-    add wave -group $groupName_0 -label $signal -position insertpoint sim:/testbench/p_MainProcessor/gen_data_delay_links(0)/gen_clusters(0)/e_cluster/$signal
-    add wave -group $groupName_1 -label $signal -position insertpoint sim:/testbench/p_MainProcessor/gen_data_delay_links(0)/gen_clusters(1)/e_cluster/$signal
+    add wave -group $groupName_0 -label $signal -position insertpoint sim:/testbench/e_MainProcessor/g_data_delay_links(0)/g_clusters(0)/e_cluster/$signal
+#    add wave -group $groupName_1 -label $signal -position insertpoint sim:/testbench/e_MainProcessor/g_data_delay_links(0)/g_clusters(1)/e_cluster/$signal
 }
 
 
+set groupName "Clu0 data"
+set signals {}
+
+lappend signals "we"
+lappend signals "row"
+lappend signals "col"
+lappend signals "send"
+lappend signals "sent"
+lappend signals "flaggedWordIn"
+lappend signals "addrA"
+lappend signals "dataA_in"
+lappend signals "dataA_out"
+lappend signals "addrB"
+lappend signals "dataB_out"
+lappend signals "ramFlaggedWordOut"
+lappend signals "flaggedWordOut"
+lappend signals "dataValid"
+lappend signals "occupancy"
+
+
+foreach {signal} $signals {
+    add wave -group $groupName -label $signal -position insertpoint sim:/testbench/e_MainProcessor/g_data_delay_links(0)/g_clusters(0)/e_cluster/e_cluster_data/$signal
+#    add wave -group $groupName_1 -label $signal -position insertpoint sim:/testbench/e_MainProcessor/g_data_delay_links(0)/g_clusters(1)/e_cluster/$signal
+}
+
+
+set addr_group_name addr 
+
+add wave -group $addr_group_name -position insertpoint /testbench/e_MainProcessor/g_data_delay_links(0)/g_clusters(0)/e_cluster/p_acquisition/seed_row
+add wave -group $addr_group_name -position insertpoint /testbench/e_MainProcessor/g_data_delay_links(0)/g_clusters(0)/e_cluster/p_acquisition/seed_col
+add wave -group $addr_group_name -position insertpoint /testbench/e_MainProcessor/g_data_delay_links(0)/g_clusters(0)/e_cluster/p_acquisition/data_row
+add wave -group $addr_group_name -position insertpoint /testbench/e_MainProcessor/g_data_delay_links(0)/g_clusters(0)/e_cluster/p_acquisition/data_col
+add wave -group $addr_group_name -position insertpoint /testbench/e_MainProcessor/g_data_delay_links(0)/g_clusters(0)/e_cluster/p_acquisition/clu_row
+add wave -group $addr_group_name -position insertpoint /testbench/e_MainProcessor/g_data_delay_links(0)/g_clusters(0)/e_cluster/p_acquisition/clu_col
+add wave -group $addr_group_name -position insertpoint sim:/testbench/e_MainProcessor/g_data_delay_links(0)/g_clusters(0)/e_cluster/flaggedWordIn_1.word.address
 
 
 
-run 600 ns
+
+run 1000 ns
 

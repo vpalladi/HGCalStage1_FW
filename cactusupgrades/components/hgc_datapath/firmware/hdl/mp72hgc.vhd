@@ -32,8 +32,8 @@ begin  -- architecture behavioural
   hgcWord.valid         <= '1' when mp7Word.valid = '1' else '0';
   hgcWord.energy        <= (others => '0') when mp7Word.data = x"BCBCBCBC" or mp7Word.data = x"FBFBFBFB" else mp7Word.data((ENERGY_OFFSET + ENERGY_WIDTH - 1) downto ENERGY_OFFSET);
   hgcWord.address.wafer <= (others => '0') when mp7Word.data = x"BCBCBCBC" or mp7Word.data = x"FBFBFBFB" else mp7Word.data((WAFER_OFFSET + WAFER_WIDTH - 1) downto WAFER_OFFSET);
-  hgcWord.address.col   <= (others => '0') when mp7Word.data = x"BCBCBCBC" or mp7Word.data = x"FBFBFBFB" else mp7Word.data((ROW_OFFSET + ROW_WIDTH - 1) downto ROW_OFFSET);
-  hgcWord.address.row   <= (others => '0') when mp7Word.data = x"BCBCBCBC" or mp7Word.data = x"FBFBFBFB" else mp7Word.data((COL_OFFSET + COL_WIDTH - 1) downto COL_OFFSET);
+  hgcWord.address.row   <= (others => '0') when mp7Word.data = x"BCBCBCBC" or mp7Word.data = x"FBFBFBFB" else mp7Word.data((ROW_OFFSET + ROW_WIDTH - 1) downto ROW_OFFSET);
+  hgcWord.address.col   <= (others => '0') when mp7Word.data = x"BCBCBCBC" or mp7Word.data = x"FBFBFBFB" else mp7Word.data((COL_OFFSET + COL_WIDTH - 1) downto COL_OFFSET);
   hgcWord.SOE           <= '1'             when mp7Word.data = x"FBFBFBFB" else '0';
   hgcWord.EOE           <= '1'             when mp7Word.data = x"BCBCBCBC" else '0';
   

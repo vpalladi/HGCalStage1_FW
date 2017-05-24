@@ -30,7 +30,7 @@ entity MainProcessorTop is
   generic(
     linkId    : natural := 0;
 --    nClusters : natural := 56
-    nClusters : natural := 12
+    nClusters : natural := 6
     );
   port(
     clk       : in  std_logic;                  --! The algorithm clock
@@ -112,7 +112,7 @@ begin
   -----------------------------------------------------------------------------
   -- generate all the links
   -----------------------------------------------------------------------------
-  gen_data_delay_links : for i_link in 71 downto 0 generate
+  g_data_delay_links : for i_link in 71 downto 0 generate
 
     -- delay the data
     e_dataVariableDelay : entity work.DataVariableDelay
@@ -155,7 +155,7 @@ begin
     
     ---------------------------------------------------------------------------
     -- clusters
-    gen_clusters : for i_clu in nClusters-1 downto 0 generate
+    g_clusters : for i_clu in nClusters-1 downto 0 generate
 
       e_cluster : entity work.cluster
         generic map (
@@ -176,14 +176,21 @@ begin
           readyToAcquire          => clu_readyToAcquire(i_link)(i_clu),
           readyToSend             => clu_readyToSend(i_link)(i_clu),
           sent                    => clu_sent(i_link)(i_clu),
-          --flaggedDataOut          => clu_flaggedDataOut(i_link)(i_clu)
           flaggedWordOut          => clu_flaggedDataOut(i_link)(i_clu)
           );
 
-      
-      clu_send(i_link)(i_clu) <= clu_readyToSend(i_link)(i_clu); 
-      
-      --gen_rows : for i_row in 4 downto 0 generate
+      p_send_clu : process (clk) is
+      begin  -- process
+        if rising_edge(clk) then
+          if clu_sent(i_link)(i_clu) = '1' then
+            clu_send(i_link)(i_clu) <= '0'; 
+          elsif clu_readyToSend(i_link)(i_clu) = '1' then
+            clu_send(i_link)(i_clu) <= '1';
+          end if;
+        end if;
+      end process;
+
+      --g_rows : for i_row in 4 downto 0 generate
       --  helper_flaggedDataOut(i_link).word.valid       <= helper_flaggedDataOut(i_link).word.valid or clu_flaggedDataOut(i_link)(i_clu)(i_row).word.valid;
       --  helper_flaggedDataOut(i_link).word.address.row <= helper_flaggedDataOut(i_link).word.address.row or clu_flaggedDataOut(i_link)(i_clu)(i_row).word.address.row;
       --  helper_flaggedDataOut(i_link).word.address.col <= helper_flaggedDataOut(i_link).word.address.col or clu_flaggedDataOut(i_link)(i_clu)(i_row).word.address.col;
@@ -192,20 +199,18 @@ begin
       --  helper_flaggedDataOut(i_link).dataFlag         <= helper_flaggedDataOut(i_link).dataFlag or clu_flaggedDataOut(i_link)(i_clu)(i_row).dataFlag;
       --  helper_flaggedDataOut(i_link).seedFlag         <= helper_flaggedDataOut(i_link).seedFlag or clu_flaggedDataOut(i_link)(i_clu)(i_row).seedFlag;
       --
-      --end generate gen_rows;
+      --end generate g_rows;
 
-    end generate gen_clusters;
+    end generate g_clusters;
 
-  end generate gen_data_delay_links;
+    e_hgc2mp7Out : entity work.hgc2mp7FlaggedWord
+      port map (
+        hgcFlaggedWord => clu_flaggedDataOut(i_link)(0),--clu_flaggedDataOut(0)(0),
+        --hgcFlaggedData => sdist_flaggedDataOut,
+        mp7Word => linksOut(i_link)
+        );
 
-
-  e_hgc2mp7Out : entity work.hgc2mp7FlaggedWord
-    port map (
-      hgcFlaggedWord => clu_flaggedDataOut(0)(0),--clu_flaggedDataOut(0)(0),
-      --hgcFlaggedData => sdist_flaggedDataOut,
-      mp7Word => linksOut(0)
-      );
-
+  end generate g_data_delay_links;
   
   -- translate data from HGC to MP7 format 
   --e_hgc2mp7Out : entity work.hgc2mp7FlaggedData

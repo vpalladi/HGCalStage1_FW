@@ -22,7 +22,7 @@ entity DataVariableDelay is
     flaggedWordIn  : in  hgcFlaggedWord;
     flaggedWordOut : out hgcFlaggedWord;
     --we             : out std_logic;
-    EOE            : out std_logic
+    EOE            : out std_logic := '0'
     );
 
 end entity DataVariableDelay;
