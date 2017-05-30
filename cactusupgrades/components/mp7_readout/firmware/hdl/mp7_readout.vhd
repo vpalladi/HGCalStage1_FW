@@ -327,8 +327,8 @@ begin
 		port map(
 			clk => clk,
 			rst => rst,
-			ipb_in => ipbw(N_SLV_ZS),
-			ipb_out => ipbr(N_SLV_ZS),
+			ipb_in => ipbw(N_SLV_READOUT_ZS),
+			ipb_out => ipbr(N_SLV_READOUT_ZS),
 			clk_p => clk_p,
 			rst_p => rst_p,
 			daq_bus_in => dbus_zs_in,

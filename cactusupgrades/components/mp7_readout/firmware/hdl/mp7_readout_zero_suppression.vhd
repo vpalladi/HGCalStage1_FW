@@ -51,6 +51,7 @@ use work.ipbus_reg_types.all;
 
 use work.top_decl.all;
 use work.mp7_readout_decl.all;
+use work.ipbus_decode_mp7_readout_zs.all;
 
 entity mp7_readout_zero_suppression is
 	port(
@@ -70,6 +71,8 @@ end mp7_readout_zero_suppression;
 
 
 architecture rtl of mp7_readout_zero_suppression is
+	signal ipbw: ipb_wbus_array(N_SLAVES - 1 downto 0);
+    signal ipbr: ipb_rbus_array(N_SLAVES - 1 downto 0);
 
 -- V1 state machine
 	signal dbus_plus_1clk, dbus_plus_2clk, dbus_plus_3clk, dbus_plus_4clk: daq_bus;
@@ -86,7 +89,8 @@ architecture rtl of mp7_readout_zero_suppression is
 -- Signals from V1 of ZS block
 	signal ctr, ro_mask_ctr: unsigned(15 downto 0);
 	signal strobe: std_logic;
-	signal ro_mask: std_logic_vector(31 downto 0) ; 
+	signal ro_mask, ro_mask_plus_1clk: std_logic_vector(31 downto 0) ;
+	signal ro_mask_4: std_logic_vector(3 downto 0) ; -- dummy signal, not used.
 	signal ctrl: ipb_reg_v(1 downto 0);
     signal stat: ipb_reg_v(1 downto 0);
     signal en, rst_p_int: std_logic;
@@ -115,13 +119,14 @@ architecture rtl of mp7_readout_zero_suppression is
     signal ro_mask_read_addr: std_logic_vector(6 downto 0); -- JRF contains the address based upon the capture id and which of the 6 words we are on from the block    
     signal ro_cap_id: unsigned(3 downto 0); -- 4 bit capture id which will determin which mask to use from the mask ram,
     signal ro_mode_id, ro_val_mode_id: unsigned(7 downto 0); -- mode_id from header and required mode id to determin if this is a validation event
+    signal cap_en: std_logic_vector(15 downto 0); -- 16 enable bits, one for each capid.
     signal ro_mask_en: std_logic;
     
     constant dummy_1 : std_logic := '1';
     constant dummy_0: std_logic := '0';
     constant dummy_0_vec_1 : std_logic_vector(0 downto 0) := (others => '0');
     constant dummy_1_vec_1 : std_logic_vector(0 downto 0) := (others => '1');
-    constant dummy_0_vec_32: std_logic_vector(31 downto 0) := (others => '0');
+    constant dummy_0_vec_36: std_logic_vector(35 downto 0) := (others => '0');
     --constant ZS_ENABLED : std_logic := '0'; -- this is declared in top_decl.vhd for each project
 
 begin 
@@ -156,21 +161,37 @@ begin
         );
 
 -- JRF add the entity for block ram to store the masks
-    zs_blk_mask_32x72: entity work.blk_mem_zs_mask_32x72
-        port map (         
-            clka => clk, --: IN STD_LOGIC;
-            ena => dummy_1, --: IN STD_LOGIC;
-            wea => dummy_1_vec_1, --: IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-            addra => ctrl(0)(10 downto 4), --: IN STD_LOGIC_VECTOR(6 DOWNTO 0);
-            dina => ctrl(1)(31 downto 0), --: IN STD_LOGIC_VECTOR(31 DOWNTO 0);
-            douta => open, -- ro_mask(31 downto 0), --: OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
-            clkb => clk_p, --: IN STD_LOGIC;
-            enb => dummy_1, --: IN STD_LOGIC;
-            web => dummy_0_vec_1, --: IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-            addrb => ro_mask_read_addr, --: IN STD_LOGIC_VECTOR(6 DOWNTO 0);
-            dinb => dummy_0_vec_32, --: IN STD_LOGIC_VECTOR(31 DOWNTO 0);
-            doutb => ro_mask(31 downto 0) --: OUT STD_LOGIC_VECTOR(31 DOWNTO 0)
-        );	
+-- JRF removing this blck ram in an attempt to use Dave's ipbus port ram
+--     zs_blk_mask_32x72: entity work.blk_mem_zs_mask_32x72
+--        port map (         
+--            clka => clk, --: IN STD_LOGIC;
+--            ena => dummy_1, --: IN STD_LOGIC;
+--            wea => dummy_1_vec_1, --: IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+--            addra => ctrl(0)(10 downto 4), --: IN STD_LOGIC_VECTOR(6 DOWNTO 0);
+--            dina => ctrl(1)(31 downto 0), --: IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+--            douta => stat(1)(31 downto 0), - --: OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
+--            clkb => clk_p, --: IN STD_LOGIC;
+--            enb => dummy_1, --: IN STD_LOGIC;
+--            web => dummy_0_vec_1, --: IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+--            addrb => ro_mask_read_addr, --: IN STD_LOGIC_VECTOR(6 DOWNTO 0);
+--            dinb => dummy_0_vec_32, --: IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+--            doutb => ro_mask(31 downto 0) --: OUT STD_LOGIC_VECTOR(31 DOWNTO 0)
+--        );	
+		   
+-- ipbus address decode
+		
+	fabric: entity work.ipbus_fabric_sel
+    generic map(
+    	NSLV => N_SLAVES,
+    	SEL_WIDTH => IPBUS_SEL_WIDTH)
+    port map(
+      ipb_in => ipb_in,
+      ipb_out => ipb_out,
+      sel => ipbus_sel_mp7_readout_zs(ipb_in.ipb_addr),
+      ipb_to_slaves => ipbw,
+      ipb_from_slaves => ipbr
+    );
+
 		   
  csr: entity work.ipbus_ctrlreg_v
   generic map(
@@ -180,11 +201,29 @@ begin
   port map(
       clk => clk,
       reset => rst,
-      ipbus_in => ipb_in,
-      ipbus_out => ipb_out,
+      ipbus_in => ipbw(N_SLV_CSR),
+      ipbus_out => ipbr(N_SLV_CSR),
       d => stat,
       q => ctrl
   );
+ 
+  zs_blk_mask_ram: entity work.ipbus_ported_dpram36
+          generic map(
+              ADDR_WIDTH => 7--LB_ADDR_WIDTH
+          )
+          port map(
+              clk => clk,
+              rst => rst,
+              ipb_in => ipbw(N_SLV_RAM),
+              ipb_out => ipbr(N_SLV_RAM),
+              rclk => clk_p,
+              we => '0',
+              d => dummy_0_vec_36,
+              q(31 downto 0) => ro_mask,
+              q(35 downto 32) => ro_mask_4,
+              addr => ro_mask_read_addr
+          );
+--ro_mask(31 downto 0) <= ro_mask_36 ( 31 downto 0); -- pass the 36 wide ram data into the ro_mask 32 bit wide bus
   
 ZS_DISABLE: if (ZS_ENABLED = false) generate
 
@@ -193,7 +232,7 @@ ZS_DISABLE: if (ZS_ENABLED = false) generate
  --ctrl(0) <= (others => '0');
  --ctrl(1) <= (others => '0');
  stat(0) <= X"00000000";
- stat(1) <= X"00080848"; -- bit 24 - ZS Enabled, fifo 1 36 x 8, fifo 2 36 x 8, mask ram, 32 x 72 (0x48)
+ stat(1) <= X"00000000"; -- bit 24 - ZS Enabled, fifo 1 36 x 8, fifo 2 36 x 8, mask ram, 32 x 72 (0x48)
      
  ro_mask_read_addr <= (others => '0');
  ro_mask <= (others => '0');
@@ -235,7 +274,7 @@ ZS_ENABLE: if (ZS_ENABLED = true) generate
 	                        & std_logic_vector(to_unsigned(fifo_transfer_state_type'pos(state_fifo_transfer), 2)) 
 	                        & std_logic_vector(to_unsigned(output_state_type'pos(state_data_out), 2)); -- [3]&[2]&[2]
 	-- fifo sizes
-	stat(1) <= X"01080848"; -- bit 24 - ZS Enabled, fifo 1 36 x 8, fifo 2 36 x 8, mask ram, 32 x 72 (0x48)
+	stat(1) <= X"01080860"; -- bit 24 - ZS Enabled, fifo 1 36 x 8, fifo 2 36 x 8, mask ram, 36 x  96 (0x60)
 	
 			
    process(clk_p) -- process to select which done signal to output, this depends if we are performing zero suppression or not
@@ -581,6 +620,7 @@ ZS_ENABLE: if (ZS_ENABLED = true) generate
             block_length_plus_1clk <= block_length;
             block_length_plus_2clk <= block_length_plus_1clk;
             
+            ro_mask_plus_1clk <= ro_mask;
             state_main_prev <= state_main;
             state_main_prev2 <= state_main_prev;
             state_main_prev3 <= state_main_prev2;
@@ -782,7 +822,7 @@ ZS_ENABLE: if (ZS_ENABLED = true) generate
                                             dbus_plus_4clk.data.strobe &
                                             dbus_plus_4clk.data.data;
                     if (counter_fifo1_write < block_length) then -- skip the block header when deciding whether to keep block
-                        keep_blk <= keep_blk or (or_reduce(dbus_plus_4clk.data.data and ro_mask)); -- or all the bits in data keep if anything is non-zero
+                        keep_blk <= keep_blk or (or_reduce(dbus_plus_4clk.data.data and ro_mask_plus_1clk)); -- or all the bits in data keep if anything is non-zero
                     else
                         --use this opportunity to clear the keep_blk
                         keep_blk <= '0';
@@ -822,7 +862,7 @@ ZS_ENABLE: if (ZS_ENABLED = true) generate
             if (rst_p_int = '1') or (state_fifo_transfer = ST_IDLE) then
                 fifo2_write_strobe <= '0';
             elsif  (done_blk_plus_1clk = '1' and keep_blk_plus_1clk = '1')
-                or ( done_blk_plus_1clk = '1' and ro_mode_id = ro_val_mode_id)  -- we only trigger strobe in this case for validation events. keep_blk is 0, but we want to keep data and tag it
+                or ( done_blk_plus_1clk = '1' and ( (ro_mode_id = ro_val_mode_id) or ( cap_en(to_integer(ro_cap_id)) = '0') ) )  -- we only trigger strobe in this case for validation events and if the capid_en is 0 for that capture_id. keep_blk is 0, but we want to keep data and tag it
                 or ( fifo2_write_strobe = '1' and counter_fifo1_read > 1) then --note we are latching on the write strobe so keep blk need only be high for 1 clock to trigger
                 fifo2_write_strobe <= '1';
             else 
@@ -845,7 +885,7 @@ ZS_ENABLE: if (ZS_ENABLED = true) generate
                         and keep_blk_plus_5clk = '0'
                         and fifo2_write_strobe_plus_3clk = '1') then -- note that we had to pipeline keep_blk a lot because we are deep into 
                     --only the blk header when keep blk is flase( this only happens for validation events)
-                    dbus_zs_fifo2_in <= dbus_zs_fifo2_in_pre2(35 downto 1) & '1';
+                    dbus_zs_fifo2_in <= dbus_zs_fifo2_in_pre2(35 downto 1) & std_logic(cap_en(to_integer(ro_cap_id))) ; -- '1'; --Note we must not tag validation events for which that capture id was disabled
                     zs_fifo2_wen <= zs_fifo2_wen_pre2;
                 elsif (fifo2_write_strobe_plus_3clk = '1') then -- only transfer data if needed
                     dbus_zs_fifo2_in <= dbus_zs_fifo2_in_pre2;
@@ -864,8 +904,8 @@ ZS_ENABLE: if (ZS_ENABLED = true) generate
 end generate;
     
     en <= ctrl(0)(0); -- ZS enable or disable
-    ro_val_mode_id <= unsigned(ctrl(0)(19 downto 12)); -- mode ID on which to output validation events
-
+    ro_val_mode_id <= unsigned(ctrl(0)(27 downto 20)); -- mode ID on which to output validation events
+    cap_en <= ctrl(0)(19 downto 4); -- 16 enable bits one for each capid
 
 
     process(clk_p)

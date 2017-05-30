@@ -31,27 +31,10 @@ all:
 	vcom -explicit  ../../calol2/algorithm_components/firmware/hdl/common/constants_pkg.vhd
 
 #
-## project specific constants and types 
+## INFOSTRUCTURE
 #
-
-	vcom -explicit  $(CACTUS_COMPONENTS)/hgc_datapath/firmware/hdl/hgc_constants.vhd
-
 	vcom -explicit  $(CACTUS_COMPONENTS)/mp7_datapath/firmware/hdl/mp7_data_types.vhd
-	vcom -explicit  $(CACTUS_COMPONENTS)/hgc_datapath/firmware/hdl/hgc_data_types.vhd
 	vcom -explicit  $(CACTUS_COMPONENTS)/ipbus_core/firmware/hdl/ipbus_package.vhd
-
-	vcom -explicit  $(CACTUS_COMPONENTS)/hgc_datapath/firmware/hdl/mp72hgc.vhd
-	vcom -explicit  $(CACTUS_COMPONENTS)/hgc_datapath/firmware/hdl/hgc2mp7.vhd
-	vcom -explicit  $(CACTUS_COMPONENTS)/hgc_datapath/firmware/hdl/hgc2ram.vhd
-	vcom -explicit  $(CACTUS_COMPONENTS)/hgc_datapath/firmware/hdl/ram2hgc.vhd
-#	vcom -explicit  $(CACTUS_COMPONENTS)/hgc_datapath/firmware/hdl/hgc_functions.vhd
-#	vcom -explicit  $(CACTUS_COMPONENTS)/hgc_datapath/firmware/hdl/hgc_procedures.vhd
-
-#
-## common components
-#
-	vcom -explicit  $(HDL_SOURCES)/types_pkg.vhd
-
 
 #
 ## IPs
@@ -72,6 +55,20 @@ all:
 
 	vcom -explicit  $(HDL_SOURCES)/MP7CaptureFileReader.vhd
 	vcom -explicit  $(HDL_SOURCES)/MP7CaptureFileWriter.vhd
+
+#
+## project (data formats and conversions)
+#
+	vcom -explicit $(HDL_SOURCES)/dataFormats/hgc_data_types.vhd
+
+	vcom -explicit $(HDL_SOURCES)/types_pkg.vhd
+
+	vcom -explicit $(HDL_SOURCES)/dataFormats/hgc_constants.vhd
+
+	vcom -explicit $(HDL_SOURCES)/dataFormats/mp72hgc.vhd
+	vcom -explicit $(HDL_SOURCES)/dataFormats/hgc2mp7.vhd
+	vcom -explicit $(HDL_SOURCES)/dataFormats/hgc2ram.vhd
+	vcom -explicit $(HDL_SOURCES)/dataFormats/ram2hgc.vhd
 
 #
 ## project (HGC specific)

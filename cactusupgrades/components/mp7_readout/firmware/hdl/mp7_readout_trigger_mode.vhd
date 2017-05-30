@@ -104,6 +104,14 @@ ARCHITECTURE rtl OF mp7_readout_trigger_mode IS
     SIGNAL ro_tok_d1, ro_tok_d2 : std_logic;
     SIGNAL rst_p_d1 : std_logic;
 
+    -- Problems meeting timing in "trig_processor" in Vivado 15.2 
+    -- Adding extra reg not viable without possibly chnaging DAQ 
+    -- functionality and requiring additional testing.
+    -- Use "max_fanout" instead.
+    
+    ATTRIBUTE max_fanout : integer;
+    ATTRIBUTE max_fanout of rst_p_d1 : signal is 8;
+    
 BEGIN
 
 

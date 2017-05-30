@@ -62,13 +62,20 @@ begin
 		if rising_edge(clk_p) then
 			if resync = '1' then
 				rst_ctr <= "000";
-			elsif rsti = '1' then
+				rsti <= '1';
+			elsif rst_ctr < "111" then
 				rst_ctr <= rst_ctr + 1;
+				rsti <= '1';
+			else
+                rsti <= '0';
 			end if;
 		end if;
 	end process;
 	
-	rsti <= '0' when rst_ctr = "111" else '1';
+	-- Timing failure in Viv 2016.1.  Rewrote reset (see above).
+	-- There are jumps from 240MHz to 40MHz domain 
+	-- that should be reg to reg due to clk uncertainty.
+	-- rsti <= '0' when rst_ctr = "111" else '1';
 
 -- trigger FIFO
 	

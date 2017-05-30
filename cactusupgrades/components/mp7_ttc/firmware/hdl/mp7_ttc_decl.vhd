@@ -40,7 +40,7 @@ package mp7_ttc_decl is
 	constant TTC_BCMD_TEST_SYNC: ttc_cmd_t := X"0c";
 	constant TTC_BCMD_START: ttc_cmd_t := X"10";
 	constant TTC_BCMD_STOP: ttc_cmd_t := X"14";
-	constant TTC_BCMD_TEST_ENABLE: ttc_cmd_t := X"12";
+	constant TTC_BCMD_TEST_ENABLE: ttc_cmd_t := X"24";
 	constant TTC_BCMD_HARD_RESET: ttc_cmd_t := X"4c";	
 	constant TTC_BCMD_NULL: ttc_cmd_t := X"00";
 

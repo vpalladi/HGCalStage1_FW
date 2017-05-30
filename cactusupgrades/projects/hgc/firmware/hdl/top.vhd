@@ -30,7 +30,7 @@ entity MainProcessorTop is
   generic(
     linkId    : natural := 0;
 --    nClusters : natural := 56
-    nClusters : natural := 6
+    nClusters : natural := 1
     );
   port(
     clk       : in  std_logic;                  --! The algorithm clock
@@ -97,6 +97,9 @@ architecture behavioral of MainProcessorTop is
 
 begin
 
+--test  linksOut <= linksIn;
+
+  
   -----------------------------------------------------------------------------
   -- seeding the links
   -----------------------------------------------------------------------------

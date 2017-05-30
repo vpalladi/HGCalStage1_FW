@@ -13,6 +13,8 @@ src ../cgn/zs_fifo_8k_x_36b/zs_fifo_8k_x_36b.xci
 src ../cgn/blk_mem_zs_mask_32x72/blk_mem_zs_mask_32x72.xci
 addrtab -t mp7_readout_control.xml
 addrtab -t mp7_readout.xml
+addrtab -t mp7_readout_zs.xml
+src ipbus_decode_mp7_readout_zs.vhd
 src ipbus_decode_mp7_readout_control.vhd
 src ipbus_decode_mp7_readout.vhd
 src fake_event_src.vhd ro_buffer.vhd tts_sm.vhd
@@ -22,5 +24,5 @@ include -c components/mp7_ttc state_history.dep
 src mp7_readout_decl.vhd
 src -c components/mp7_ttc mp7_ttc_decl.vhd
 src -c components/mp7_datapath mp7_data_types.vhd
-src -c components/ipbus_slaves ipbus_reg_v.vhd ipbus_ctrlreg_v.vhd ipbus_reg_types.vhd
+src -c components/ipbus_slaves ipbus_reg_v.vhd ipbus_ctrlreg_v.vhd ipbus_reg_types.vhd ipbus_ported_dpram36.vhd
 src -c components/ipbus_core ipbus_package.vhd

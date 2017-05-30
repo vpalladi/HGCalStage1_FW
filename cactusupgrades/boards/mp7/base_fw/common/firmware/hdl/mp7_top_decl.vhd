@@ -11,7 +11,7 @@ use work.mp7_brd_decl.all;
 
 package mp7_top_decl is
 
-	constant FW_REV: std_logic_vector(23 downto 0) := X"020200";
+	constant FW_REV: std_logic_vector(23 downto 0) := X"020201";
 	
 	type clock_ratio_array_t is array(2 downto 0) of integer;
 

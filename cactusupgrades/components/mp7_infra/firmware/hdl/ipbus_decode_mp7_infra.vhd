@@ -17,7 +17,7 @@ package ipbus_decode_mp7_infra is
   subtype ipbus_sel_t is std_logic_vector(IPBUS_SEL_WIDTH - 1 downto 0);
   function ipbus_sel_mp7_infra(addr : in std_logic_vector(31 downto 0)) return ipbus_sel_t;
 
--- START automatically  generated VHDL the Wed Mar 16 18:33:20 2016 
+-- START automatically  generated VHDL the Fri Aug 26 12:22:57 2016 
   constant N_SLV_CTRL: integer := 0;
   constant N_SLV_TTC: integer := 1;
   constant N_SLV_I2C_MINIPODS_TOP: integer := 2;
@@ -39,7 +39,7 @@ package body ipbus_decode_mp7_infra is
     variable sel: ipbus_sel_t;
   begin
 
--- START automatically  generated VHDL the Wed Mar 16 18:33:20 2016 
+-- START automatically  generated VHDL the Fri Aug 26 12:22:57 2016 
     if    std_match(addr, "0000---------------0---0000-----") then
       sel := ipbus_sel_t(to_unsigned(N_SLV_CTRL, IPBUS_SEL_WIDTH)); -- ctrl / base 0x00000000 / mask 0xf00011e0
     elsif std_match(addr, "0000---------------0---0010-----") then
@@ -50,8 +50,8 @@ package body ipbus_decode_mp7_infra is
       sel := ipbus_sel_t(to_unsigned(N_SLV_I2C_MINIPODS_BOT, IPBUS_SEL_WIDTH)); -- i2c.minipods_bot / base 0x00000068 / mask 0xf00011e8
     elsif std_match(addr, "0000---------------0---0100-----") then
       sel := ipbus_sel_t(to_unsigned(N_SLV_CLOCKING, IPBUS_SEL_WIDTH)); -- clocking / base 0x00000080 / mask 0xf00011e0
-    elsif std_match(addr, "0000---------------0---10-------") then
-      sel := ipbus_sel_t(to_unsigned(N_SLV_READOUT, IPBUS_SEL_WIDTH)); -- readout / base 0x00000100 / mask 0xf0001180
+    elsif std_match(addr, "0000---------------0---1--------") then
+      sel := ipbus_sel_t(to_unsigned(N_SLV_READOUT, IPBUS_SEL_WIDTH)); -- readout / base 0x00000100 / mask 0xf0001100
     elsif std_match(addr, "0000---------------1------------") then
       sel := ipbus_sel_t(to_unsigned(N_SLV_DATAPATH, IPBUS_SEL_WIDTH)); -- datapath / base 0x00001000 / mask 0xf0001000
     elsif std_match(addr, "0111---------------0---0000-0---") then
