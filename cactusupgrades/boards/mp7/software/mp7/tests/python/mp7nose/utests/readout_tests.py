@@ -232,10 +232,6 @@ class UnpackerBase(mp7nose.TestUnit):
         readout.Setup.run(cls.board, **config['setup'])
         print 'Configuring out menu'
         readout.LoadMenu.run(cls.board, cls.menuFile, cls.menuName)
-        # Additionally, set board id
-        ctrl = cls.board.getCtrl()
-        ctrl.getNode('board_id').write(0x1234)
-        ctrl.getClient().dispatch()
         
         result = readout.CaptureEvents.run(cls.board, **config['capture'])
 

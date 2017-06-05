@@ -185,20 +185,14 @@ class EyeScan:
     @staticmethod
     def addArgs(subp):
         subp.add_argument('-c','--chan', dest='chan', default=0, type=int, help='Link to perform eyescan on.'+defaultFmtStr)
-        subp.add_argument('-o','--out','--outputpath', default='eye_data', help='Output path'+defaultFmtStr)
-        subp.add_argument('--xmax', default=32, type=int, help='X maximum'+defaultFmtStr)
-        subp.add_argument('--ymax', default=127, type=int, help='Y maximum'+defaultFmtStr)
-        subp.add_argument('--xstep', default=2, type=int, help='Y maximum'+defaultFmtStr)
-        subp.add_argument('--ystep', default=3, type=int, help='Y maximum'+defaultFmtStr)
 
     @staticmethod
-    def run(board, chan, out, xmax, ymax):
+    def run(board, chan):
         
         logging.warning('Advised user runs a reset before using this command, ye have been warned')
 
-        allChans = range(0,72)
-        # TxMGTs.run(board, enablechans=list(range(0,72)), loopback=True, pattern='std')
-        RxMGTs.run(board, enablechans=allChans)
+        TxMGTs.run(board, enablechans=list(range(0,72)), loopback=True, pattern='std')
+        RxMGTs.run(board, enablechans=list(range(0,72)))
 
         logging.notice('Selecting channel %d', chan)
         board.getDatapath().selectLink(chan)
@@ -232,12 +226,11 @@ class EyeScan:
         
         #if not os.path.exists(os.path.dirname('eye_data')):
         #    os.makedirs(os.path.dirname('eye_data'))
-        if not os.path.exists(out):
-            os.makedirs(out)
-
-        filename = 'eyescan_%02d_%s.txt' % (chan, time.strftime("%Y%m%d_%H%M%S"))
-        filepath = os.path.join(out,filename)
-        with open(filepath, 'w') as f:
+        if not os.path.exists('eye_data'):
+            os.makedirs('eye_data')
+        filename = 'eye_data/eyescan_%02d_%s.txt' % (chan, time.strftime("%Y%m%d_%H%M%S"))
+        
+        with open(filename, 'w') as f:
         
             for i in x_:#2  # Was step of 1
 
@@ -267,7 +260,7 @@ class EyeScan:
                         z_.append(ret)
                         f.write(str(i)+','+str(j)+','+str(ret)+'\n')
                         break
-        logging.info('Eyescan data for channel %d saved to %s', chan, filepath)
+        logging.info('Eyescan data for channel %d saved to %s', chan, filename)
 
 def eyeMeasure(hw, horizontal, vertical, prescale):
 

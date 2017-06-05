@@ -53,6 +53,11 @@ package hgc_data_types is
   --constant HGCFLAGGEDWORD_NEWBX : hgcFlaggedWord             := ('0', HGCADDR_FULL, (others => '1'), '1', '1');
   constant HGCFLAGGEDDATA_NULL  : hgcFlaggedData(0 downto 0) := (0 => HGCFLAGGEDWORD_NULL);
 
+  -- lcuster output
+  type hgcFlaggedData_cluOut is array (natural range <>) of hgcFlaggedWord;
 
+
+
+  
 end hgc_data_types;
 

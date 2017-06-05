@@ -15,8 +15,8 @@ use work.hgc_data_types.all;
 
 entity computeClu is
   generic (
-    nRows    : integer := 7;
-    nColumns : integer := 7
+    nRows    : integer := 5;
+    nColumns : integer := 5
     );
   port (
     clk          : in std_logic;
@@ -80,7 +80,7 @@ begin  -- architecture computeClu
       
     end if;
   end process process_fsm;
-  
+
 
   -----------------------------------------------------------------------------
   -- computing
