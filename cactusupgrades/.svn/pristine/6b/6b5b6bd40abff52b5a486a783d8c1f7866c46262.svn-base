@@ -1,4 +1,0 @@
-include algo.dep
-src top_decl.trunk.vhd
-src mp7_payload.trunk.vhd
-setup calol2.tcl

@@ -31,7 +31,7 @@ all:
 	vcom -explicit  ../../calol2/algorithm_components/firmware/hdl/common/constants_pkg.vhd
 
 #
-## INFOSTRUCTURE
+## MP7 infrastructure
 #
 	vcom -explicit  $(CACTUS_COMPONENTS)/mp7_datapath/firmware/hdl/mp7_data_types.vhd
 	vcom -explicit  $(CACTUS_COMPONENTS)/ipbus_core/firmware/hdl/ipbus_package.vhd
@@ -47,21 +47,23 @@ all:
 	vlog  $(IP_SOURCES)/clu_data_ram/sim/clu_data_ram.v
 
 #
-## project (common) 
+## common 
 #
-	vcom -explicit  $(HDL_SOURCES)/FunkyMiniBus.vhd
+	vcom -explicit  $(HDL_SOURCES)/common/FunkyMiniBus.vhd
+	vcom -explicit  $(HDL_SOURCES)/common/GenRomClocked.vhd
 
-	vcom -explicit  $(HDL_SOURCES)/GenRomClocked.vhd
-
-	vcom -explicit  $(HDL_SOURCES)/MP7CaptureFileReader.vhd
-	vcom -explicit  $(HDL_SOURCES)/MP7CaptureFileWriter.vhd
+#
+## IO
+#
+	vcom -explicit  $(HDL_SOURCES)/IO/MP7CaptureFileReader.vhd
+	vcom -explicit  $(HDL_SOURCES)/IO/MP7CaptureFileWriter.vhd
 
 #
 ## project (data formats and conversions)
 #
 	vcom -explicit $(HDL_SOURCES)/dataFormats/hgc_data_types.vhd
 
-	vcom -explicit $(HDL_SOURCES)/types_pkg.vhd
+	vcom -explicit $(HDL_SOURCES)/dataFormats/types_pkg.vhd
 
 	vcom -explicit $(HDL_SOURCES)/dataFormats/hgc_constants.vhd
 
@@ -71,22 +73,27 @@ all:
 	vcom -explicit $(HDL_SOURCES)/dataFormats/ram2hgc.vhd
 
 #
-## project (HGC specific)
+## seeding_data_distribution
+#                                      
+	vcom -explicit  $(HDL_SOURCES)/seeding_data_distribution/DataVariableDelay.vhd
+	vcom -explicit  $(HDL_SOURCES)/seeding_data_distribution/SeedDistributor.vhd
+	vcom -explicit  $(HDL_SOURCES)/seeding_data_distribution/SeedingLink.vhd
+	vcom -explicit  $(HDL_SOURCES)/seeding_data_distribution/SeedingLinks.vhd
+
 #
+## cluster 
+#
+	vcom -explicit  $(HDL_SOURCES)/cluster/ComputeClustering.vhd
+#	vcom -explicit  $(HDL_SOURCES)/cluster/ClusterRow.vhd
+	vcom -explicit  $(HDL_SOURCES)/cluster/ClusterData.vhd
+	vcom -explicit  $(HDL_SOURCES)/cluster/Cluster.vhd
+	vcom -explicit  $(HDL_SOURCES)/cluster/Clusters.vhd
 
-	vcom -explicit  $(HDL_SOURCES)/DataVariableDelay.vhd
+#
+## Link
+#
+	vcom -explicit  $(HDL_SOURCES)/Link.vhd
 
-	vcom -explicit  $(HDL_SOURCES)/SeedDistributor.vhd
-
-	vcom -explicit  $(HDL_SOURCES)/SeedingLink.vhd
-	vcom -explicit  $(HDL_SOURCES)/SeedingLinks.vhd
-
-
-# cluster 
-	vcom -explicit  $(HDL_SOURCES)/ComputeClustering.vhd
-#	vcom -explicit  $(HDL_SOURCES)/ClusterRow.vhd
-	vcom -explicit  $(HDL_SOURCES)/ClusterData.vhd
-	vcom -explicit  $(HDL_SOURCES)/Cluster.vhd
 
 #
 ## top
@@ -162,7 +169,7 @@ clean: FORCE
 	rm -f transcript
 
 sim:
-	vsim -gsourcefile="data/out.mp7" -gdestinationfile="results/out.mp7" -L $(LIB_NAME) -t 1ps -L dist_mem_gen_v8_0_11 -L blk_mem_gen_v8_3_5 -L unisims_ver -L unimacro_ver -L secureip -lib $(LIB_NAME) -novopt $(LIB_NAME).TestBench
+	vsim -gsourcefile="data/outR_0.mp7" -gdestinationfile="results/outR_0.mp7" -L $(LIB_NAME) -t 1ps -L dist_mem_gen_v8_0_11 -L blk_mem_gen_v8_3_5 -L unisims_ver -L unimacro_ver -L secureip -lib $(LIB_NAME) -novopt $(LIB_NAME).TestBench
 #	vsim -voptargs=""+acc"" -L xil_defaultlib -L xpm -L dist_mem_gen_v8_0_11 -L blk_mem_gen_v8_3_5 -L unisims_ver -L unimacro_ver -L secureip -lib xil_defaultlib xil_defaultlib.TestBench xil_defaultlib.glbl -novopt 
 #	vsim -novopt work.testbench
 #	vsim work.testbench

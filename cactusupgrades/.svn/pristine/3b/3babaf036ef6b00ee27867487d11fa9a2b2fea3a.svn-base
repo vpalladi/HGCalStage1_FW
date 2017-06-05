@@ -1,6 +1,0 @@
-<node id="payload" fwinfo="endpoint;width=16">
-  <node id="Instruction" address="0x0000" permission="w" />
-  <node id="BusSize"     address="0x0800" permission="r" />
-  <node id="InfoSpace"   address="0x1000" mode="incremental" size="2048" permission="r" />
-  <node id="Data"        address="0x1800" mode="non-incremental" permission="rw" />
-</node>
