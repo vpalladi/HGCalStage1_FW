@@ -84,3 +84,113 @@ for {set i 0} {$i < 18} {incr i} {
 # "Cross-device" registers for readout and TTC path
 
 add_cells_to_pblock [get_pblocks payload_8] [get_cells -quiet datapath/rgen[8].region/pgen.*]
+
+
+# vito
+
+for {set i_link 0} {$i_link < 1} {incr i_link} {
+    set id_0 [expr 0+4*$i_link]
+    set id_1 [expr 1+4*$i_link]
+    set id_2 [expr 2+4*$i_link]
+    set id_3 [expr 3+4*$i_link]
+    add_cells_to_pblock [get_pblocks payload_$i_link] [get_cells -quiet payload/AlgorithmInstance/g_links[$id_0].e_link/*]
+    add_cells_to_pblock [get_pblocks payload_$i_link] [get_cells -quiet payload/AlgorithmInstance/g_links[$id_1].e_link/*]
+    add_cells_to_pblock [get_pblocks payload_$i_link] [get_cells -quiet payload/AlgorithmInstance/g_links[$id_2].e_link/*]
+    add_cells_to_pblock [get_pblocks payload_$i_link] [get_cells -quiet payload/AlgorithmInstance/g_links[$id_3].e_link/*]
+
+###    set id [expr 0+4*$i_link]
+###    puts "payload/AlgorithmInstance/g_links[$id].e_link/*"
+}
+
+
+#add_cells_to_pblock [get_pblocks payload_0] [get_cells -quiet payload/AlgorithmInstance/g_links[0].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_0] [get_cells -quiet payload/AlgorithmInstance/g_links[1].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_0] [get_cells -quiet payload/AlgorithmInstance/g_links[2].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_0] [get_cells -quiet payload/AlgorithmInstance/g_links[3].e_link/*]
+
+#add_cells_to_pblock [get_pblocks payload_1] [get_cells -quiet payload/AlgorithmInstance/g_links[4].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_1] [get_cells -quiet payload/AlgorithmInstance/g_links[5].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_1] [get_cells -quiet payload/AlgorithmInstance/g_links[6].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_1] [get_cells -quiet payload/AlgorithmInstance/g_links[7].e_link/*]
+
+#add_cells_to_pblock [get_pblocks payload_2] [get_cells -quiet payload/AlgorithmInstance/g_links[8].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_2] [get_cells -quiet payload/AlgorithmInstance/g_links[9].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_2] [get_cells -quiet payload/AlgorithmInstance/g_links[10].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_2] [get_cells -quiet payload/AlgorithmInstance/g_links[11].e_link/*]
+
+#add_cells_to_pblock [get_pblocks payload_3] [get_cells -quiet payload/AlgorithmInstance/g_links[12].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_3] [get_cells -quiet payload/AlgorithmInstance/g_links[13].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_3] [get_cells -quiet payload/AlgorithmInstance/g_links[14].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_3] [get_cells -quiet payload/AlgorithmInstance/g_links[15].e_link/*]
+
+#add_cells_to_pblock [get_pblocks payload_4] [get_cells -quiet payload/AlgorithmInstance/g_links[16].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_4] [get_cells -quiet payload/AlgorithmInstance/g_links[17].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_4] [get_cells -quiet payload/AlgorithmInstance/g_links[18].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_4] [get_cells -quiet payload/AlgorithmInstance/g_links[19].e_link/*]
+
+#add_cells_to_pblock [get_pblocks payload_5] [get_cells -quiet payload/AlgorithmInstance/g_links[20].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_5] [get_cells -quiet payload/AlgorithmInstance/g_links[21].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_5] [get_cells -quiet payload/AlgorithmInstance/g_links[22].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_5] [get_cells -quiet payload/AlgorithmInstance/g_links[23].e_link/*]
+
+#add_cells_to_pblock [get_pblocks payload_6] [get_cells -quiet payload/AlgorithmInstance/g_links[24].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_6] [get_cells -quiet payload/AlgorithmInstance/g_links[25].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_6] [get_cells -quiet payload/AlgorithmInstance/g_links[26].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_6] [get_cells -quiet payload/AlgorithmInstance/g_links[27].e_link/*]
+
+#add_cells_to_pblock [get_pblocks payload_7] [get_cells -quiet payload/AlgorithmInstance/g_links[28].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_7] [get_cells -quiet payload/AlgorithmInstance/g_links[29].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_7] [get_cells -quiet payload/AlgorithmInstance/g_links[30].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_7] [get_cells -quiet payload/AlgorithmInstance/g_links[31].e_link/*]
+
+#add_cells_to_pblock [get_pblocks payload_8] [get_cells -quiet payload/AlgorithmInstance/g_links[32].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_8] [get_cells -quiet payload/AlgorithmInstance/g_links[33].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_8] [get_cells -quiet payload/AlgorithmInstance/g_links[34].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_8] [get_cells -quiet payload/AlgorithmInstance/g_links[35].e_link/*]
+
+
+#add_cells_to_pblock [get_pblocks payload_9] [get_cells -quiet payload/AlgorithmInstance/g_links[36].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_9] [get_cells -quiet payload/AlgorithmInstance/g_links[37].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_9] [get_cells -quiet payload/AlgorithmInstance/g_links[38].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_9] [get_cells -quiet payload/AlgorithmInstance/g_links[39].e_link/*]
+
+#add_cells_to_pblock [get_pblocks payload_10] [get_cells -quiet payload/AlgorithmInstance/g_links[40].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_10] [get_cells -quiet payload/AlgorithmInstance/g_links[41].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_10] [get_cells -quiet payload/AlgorithmInstance/g_links[42].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_10] [get_cells -quiet payload/AlgorithmInstance/g_links[43].e_link/*]
+
+#add_cells_to_pblock [get_pblocks payload_11] [get_cells -quiet payload/AlgorithmInstance/g_links[44].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_11] [get_cells -quiet payload/AlgorithmInstance/g_links[45].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_11] [get_cells -quiet payload/AlgorithmInstance/g_links[46].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_11] [get_cells -quiet payload/AlgorithmInstance/g_links[47].e_link/*]
+
+#add_cells_to_pblock [get_pblocks payload_12] [get_cells -quiet payload/AlgorithmInstance/g_links[48].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_12] [get_cells -quiet payload/AlgorithmInstance/g_links[49].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_12] [get_cells -quiet payload/AlgorithmInstance/g_links[50].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_12] [get_cells -quiet payload/AlgorithmInstance/g_links[51].e_link/*]
+
+#add_cells_to_pblock [get_pblocks payload_15] [get_cells -quiet payload/AlgorithmInstance/g_links[60].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_15] [get_cells -quiet payload/AlgorithmInstance/g_links[61].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_15] [get_cells -quiet payload/AlgorithmInstance/g_links[62].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_15] [get_cells -quiet payload/AlgorithmInstance/g_links[63].e_link/*]
+
+#add_cells_to_pblock [get_pblocks payload_16] [get_cells -quiet payload/AlgorithmInstance/g_links[64].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_16] [get_cells -quiet payload/AlgorithmInstance/g_links[65].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_16] [get_cells -quiet payload/AlgorithmInstance/g_links[66].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_16] [get_cells -quiet payload/AlgorithmInstance/g_links[67].e_link/*]
+
+#add_cells_to_pblock [get_pblocks payload_17] [get_cells -quiet payload/AlgorithmInstance/g_links[68].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_17] [get_cells -quiet payload/AlgorithmInstance/g_links[69].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_17] [get_cells -quiet payload/AlgorithmInstance/g_links[70].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_17] [get_cells -quiet payload/AlgorithmInstance/g_links[71].e_link/*]
+
+#add_cells_to_pblock [get_pblocks payload_13] [get_cells -quiet payload/AlgorithmInstance/g_links[52].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_13] [get_cells -quiet payload/AlgorithmInstance/g_links[53].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_13] [get_cells -quiet payload/AlgorithmInstance/g_links[54].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_13] [get_cells -quiet payload/AlgorithmInstance/g_links[55].e_link/*]
+
+#add_cells_to_pblock [get_pblocks payload_14] [get_cells -quiet payload/AlgorithmInstance/g_links[56].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_14] [get_cells -quiet payload/AlgorithmInstance/g_links[57].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_14] [get_cells -quiet payload/AlgorithmInstance/g_links[58].e_link/*]
+#add_cells_to_pblock [get_pblocks payload_14] [get_cells -quiet payload/AlgorithmInstance/g_links[59].e_link/*]
+

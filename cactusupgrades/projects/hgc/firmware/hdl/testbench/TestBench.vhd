@@ -164,8 +164,10 @@ begin
   e_MP7CaptureFileWriterInstance : entity work.MP7CaptureFileWriter
     generic map(
       FileName      => destinationfile,
-      DebugMessages => false
+      DebugMessages => true
       )
-    port map(clk, linksOut);
+    port map(
+      clk, linksOut
+      );
 
 end architecture behavioral;

@@ -49,14 +49,23 @@ all:
 #
 ## common 
 #
-	vcom -explicit  $(HDL_SOURCES)/common/FunkyMiniBus.vhd
-	vcom -explicit  $(HDL_SOURCES)/common/GenRomClocked.vhd
+	vcom -explicit $(HDL_SOURCES)/common/FunkyMiniBus.vhd
+	vcom -explicit $(HDL_SOURCES)/common/GenRomClocked.vhd
 
 #
 ## IO
 #
-	vcom -explicit  $(HDL_SOURCES)/IO/MP7CaptureFileReader.vhd
-	vcom -explicit  $(HDL_SOURCES)/IO/MP7CaptureFileWriter.vhd
+	vcom -explicit $(HDL_SOURCES)/IO/MP7CaptureFileReader.vhd
+	vcom -explicit $(HDL_SOURCES)/IO/MP7CaptureFileWriter.vhd
+
+#
+## utils
+#
+#	vcom -explicit $(HDL_SOURCES)/utils/MUX_occupancy.vhd
+#	vcom -explicit $(HDL_SOURCES)/utils/MUX.vhd
+	vcom -explicit $(HDL_SOURCES)/utils/Counter.vhd
+	vcom -explicit $(HDL_SOURCES)/utils/EdgeDetection.vhd
+	vcom -explicit $(HDL_SOURCES)/utils/EdgeCounter.vhd
 
 #
 ## project (data formats and conversions)
@@ -169,7 +178,7 @@ clean: FORCE
 	rm -f transcript
 
 sim:
-	vsim -gsourcefile="data/outR_0.mp7" -gdestinationfile="results/outR_0.mp7" -L $(LIB_NAME) -t 1ps -L dist_mem_gen_v8_0_11 -L blk_mem_gen_v8_3_5 -L unisims_ver -L unimacro_ver -L secureip -lib $(LIB_NAME) -novopt $(LIB_NAME).TestBench
+	vsim -gsourcefile="data/out.mp7" -gdestinationfile="results/out.mp7" -L $(LIB_NAME) -t 1ps -L dist_mem_gen_v8_0_11 -L blk_mem_gen_v8_3_5 -L unisims_ver -L unimacro_ver -L secureip -lib $(LIB_NAME) -novopt $(LIB_NAME).TestBench
 #	vsim -voptargs=""+acc"" -L xil_defaultlib -L xpm -L dist_mem_gen_v8_0_11 -L blk_mem_gen_v8_3_5 -L unisims_ver -L unimacro_ver -L secureip -lib xil_defaultlib xil_defaultlib.TestBench xil_defaultlib.glbl -novopt 
 #	vsim -novopt work.testbench
 #	vsim work.testbench

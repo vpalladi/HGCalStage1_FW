@@ -37,7 +37,7 @@ entity Link is
 
     mp7wordIn          : in  lword;         -- 8b address 8b data(energy)
 
-    flaggedWordOut : out hgcFlaggedWord 
+    flaggedWordOut : out hgcFlaggedWord := HGCFLAGGEDWORD_NULL
     
     );
 

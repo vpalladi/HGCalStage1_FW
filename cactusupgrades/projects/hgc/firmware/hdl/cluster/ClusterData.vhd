@@ -1,9 +1,11 @@
+
+
 --! Using the IEEE Library
 library IEEE;
+
 --! Using STD_LOGIC
 use IEEE.STD_LOGIC_1164.all;
---! Using STD_LOGIC_UNSIGNED
---use IEEE.std_logic_unsigned.all;
+
 --! Using NUMERIC TYPES
 use IEEE.NUMERIC_STD.all;
 
@@ -12,6 +14,10 @@ use work.mp7_data_types.all;
 
 --! hgc data types
 use work.hgc_data_types.all;
+
+--! I/O
+use IEEE.STD_LOGIC_TEXTIO.all;
+use STD.TEXTIO.all;
 
 
 entity cluster_data is
@@ -32,7 +38,7 @@ entity cluster_data is
     occupancy     : in std_logic_matrix(0 to nRows-1, 0 to nColumns-1) := (others => (others => '0'));
 
     sent           : out std_logic := '0';
-    flaggedWordOut : out hgcFlaggedWord;
+    flaggedWordOut : out hgcFlaggedWord := HGCFLAGGEDWORD_NULL;
     dataValid      : out std_logic := '0'
     );
 
@@ -51,13 +57,20 @@ architecture arch_cluster_data of cluster_data is
   signal ramFlaggedWordOut : hgcFlaggedWord;
   signal ramFlaggedWordOut_1 : hgcFlaggedWord;
 
-  signal erase : std_logic;
+  signal erase : std_logic := '0';
 
   signal valid   : std_logic := '0';
   signal valid_1 : std_logic := '0';
 
+  signal veto  : std_logic := '0';
+  
 begin  -- architecture arch_cluster_data
 
+  -----------------------------------------------------------------------------
+  -- outputs
+  -----------------------------------------------------------------------------
+  
+  
   -----------------------------------------------------------------------------
   -- input to ram
   -----------------------------------------------------------------------------
@@ -79,6 +92,7 @@ begin  -- architecture arch_cluster_data
     --variable c : std_logic_vector(2 downto 0) := (others => '0');
     variable r : integer := 0;
     variable c : integer := 0;
+    variable L : line;
   begin
     if rising_edge(clk) then
 
@@ -108,17 +122,19 @@ begin  -- architecture arch_cluster_data
 
       valid_1 <= valid;
 
+      veto <= occupancy(r,c);
+      
       addrB <= std_logic_vector(to_unsigned(r, row'length)) & std_logic_vector(to_unsigned(c, col'length));
-      --if occupancy(r,c) = '1' then
-        --ramFlaggedWordOut_1 <= ramFlaggedWordOut;
-      flaggedWordOut <= ramFlaggedWordOut;
-      --else
-      --  flaggedWordOut <= HGCFLAGGEDWORD_NULL;
-      --end if;
+      if veto = '1' then
+        flaggedWordOut <= ramFlaggedWordOut;
+      else
+        flaggedWordOut <= HGCFLAGGEDWORD_NULL;
+      end if;
 
     end if;
   end process p_addrB;
 
+  
   -----------------------------------------------------------------------------
   -- DRAM
   -----------------------------------------------------------------------------

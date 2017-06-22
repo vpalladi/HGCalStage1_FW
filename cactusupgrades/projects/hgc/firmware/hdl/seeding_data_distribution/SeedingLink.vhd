@@ -22,7 +22,7 @@ entity SeedingLink is
     energyThreshold : in std_logic_vector(7 downto 0);
 
     mp7wordIn      : in  lword;         -- 8b address 8b data(energy)
-    flaggedWordOut : out hgcFlaggedWord
+    flaggedWordOut : out hgcFlaggedWord := HGCFLAGGEDWORD_NULL
 
     );
 

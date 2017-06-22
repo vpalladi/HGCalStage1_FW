@@ -16,14 +16,15 @@ use work.hgc_data_types.all;
 entity computeClu is
   generic (
     nRows    : integer := 5;
-    nColumns : integer := 5
+    nColumns : integer := 5;
+    nIterations : natural := 5
     );
   port (
     clk          : in std_logic;
     clean        : in std_logic;
     compute      : in std_logic;
     occupancyMap : in std_logic_matrix(0 to nRows-1, 0 to nColumns-1);
-    computed     : out std_logic;
+    computed     : out std_logic := '0';
     cluster      : inout std_logic_matrix(0 to nRows-1, 0 to nColumns-1)
   );
 
@@ -31,70 +32,30 @@ end entity computeClu;
 
 architecture arch_computeClu of computeClu is
 
-  type fsm is (fsm_waitingCompute, fsm_computing, fsm_computed, fsm_clean);
-  signal state : fsm := fsm_clean;
 
   -- mask to apply
   signal mask : std_logic_matrix(0 to nRows-1, 0 to nColumns-1) := (others => (others => '0'));
-
-  -- computed signals 
-  signal internal_computed : std_logic := '0';
   
 begin  -- architecture computeClu
-
-  -----------------------------------------------------------------------------
-  -- assignements
-  -----------------------------------------------------------------------------
-  computed <= internal_computed;
-
-  
-  -----------------------------------------------------------------------------
-  -- fsm
-  -----------------------------------------------------------------------------
-  process_fsm: process (clk) is
-  begin  -- process process_fsm
-    if rising_edge(clk) then
-
-      case state is
-        when fsm_waitingCompute =>
-          if compute = '1' then
-            state <= fsm_computing;
-          else
-            state <= state;
-          end if;
-        when fsm_computing =>
-          if internal_computed = '1' then
-            state <= fsm_computed;
-          else
-            state <= state;
-          end if;
-        when fsm_computed =>
-          if clean = '1' then
-            state <= fsm_clean;
-          else
-            state <= state;
-          end if; 
-        when fsm_clean =>
-          state <= fsm_waitingCompute;
-      end case;
-      
-    end if;
-  end process process_fsm;
-
 
   -----------------------------------------------------------------------------
   -- computing
   -----------------------------------------------------------------------------
 
-  --mask((nRows-1)/2,(nColumns-1)/2) <= '1';
-  
+
   process_computing: process (clk) is
     variable iteration : integer := 0;
-    
+    variable compute_detected : std_logic := '0';
   begin
     if rising_edge(clk) then
+
+      if compute = '1' then
+        compute_detected := '1';
+      else
+        compute_detected := compute_detected; 
+      end if;
       
-      if state <= fsm_waitingCompute then
+      if compute_detected = '0' then
 
         cluster((nRows-1)/2, (nColumns-1)/2) <= '1';
         
@@ -105,7 +66,7 @@ begin  -- architecture computeClu
         mask((nRows-1)/2+1,(nColumns-1)/2+1) <= '1';
         mask((nRows-1)/2-1,(nColumns-1)/2-1) <= '1';
                   
-      elsif state = fsm_computing then
+      elsif compute_detected = '1' and iteration < nIterations then
 
         for irow in 0 to nRows-1 loop
           for icol in 0 to nColumns-1 loop
@@ -137,9 +98,14 @@ begin  -- architecture computeClu
         
         iteration := iteration + 1;
 
-      elsif state = fsm_clean then
-        internal_computed <= '0';
-                
+      elsif compute_detected = '1' and iteration = nIterations then
+        computed <= '1';
+      end if;
+
+      if clean = '1' then
+        computed <= '0';
+        compute_detected := '0';    
+
         iteration := 0;
         for irow in 0 to nRows-1 loop
           for icol in 0 to nColumns-1 loop
@@ -147,10 +113,6 @@ begin  -- architecture computeClu
             cluster(irow,icol)   <= '0';
           end loop;  -- icol
         end loop;  -- irow
-      end if;
-
-      if iteration = 4 then
-        internal_computed <= '1';
       end if;
       
     end if;

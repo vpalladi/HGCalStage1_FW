@@ -8,6 +8,7 @@ package hgc_data_types is
 
   -- std types
   type std_logic_matrix is array (natural range <>,natural range <>) of std_logic;
+  --type array_of_std_logic_matrix is array (natural range <>) of std_logic_matrix;
   type std_logic_array is array (natural range<>) of std_logic;
   type natural_array is array (natural range<>) of natural;
   --type std_logic_vector_array is array (natural range<>) of std_logic_vector;
@@ -55,8 +56,6 @@ package hgc_data_types is
 
   -- lcuster output
   type hgcFlaggedData_cluOut is array (natural range <>) of hgcFlaggedWord;
-
-
 
   
 end hgc_data_types;

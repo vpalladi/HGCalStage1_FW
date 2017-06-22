@@ -30,7 +30,7 @@ entity MainProcessorTop is
   generic(
 --    linkId    : natural := 0;
 --    nClusters : natural := 56
-    nClusters : natural := 10;
+    nClusters : natural := 6;
     nLinks    : natural := 4
     );
   port(
@@ -60,8 +60,9 @@ begin
   -- generate all the links
   -----------------------------------------------------------------------------
   g_links : for i_link in nLinks-1 downto 0 generate
-
+  
     e_link: entity work.Link
+--    e_link: entity work.Link_test
       generic map (
         nClusters => nClusters
         )
@@ -80,6 +81,5 @@ begin
         );
 
   end generate g_links;
-
   
 end architecture behavioral;

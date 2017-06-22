@@ -28,6 +28,8 @@ foreach fIn $inputs {
         vsim -gsourcefile=data/$fIn -gdestinationfile=results/$fIn -novopt work.TestBench -t 1ps -L dist_mem_gen_v8_0_11 -L blk_mem_gen_v8_3_5 -L unisims_ver -L unimacro_ver -L secureip
         run 1000 ns
         restart -f
+    } else {
+        puts results/$fIn
     }
 
     if { $index == $max } {

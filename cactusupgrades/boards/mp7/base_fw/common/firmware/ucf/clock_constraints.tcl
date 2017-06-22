@@ -8,7 +8,8 @@ set_input_jitter clk_40_ext 0.5
 create_clock -period 8 -name eth_refclk [get_ports eth_clkp]
 
 # Clock rate setting for refclks (kind of arbitrary, 250MHz here) - external
-create_clock -name configurable_refclks -period 4.000 [get_ports {refclkn[*]}]
+#create_clock -name configurable_refclks -period 4.000 [get_ports {refclkn[*]}]
+create_clock -name configurable_refclks -period 3.125 [get_ports {refclkn[*]}]
 
 # Clock from Ethernet Transceiver (derived from Ethernet RefClk)
 create_clock -period 16 -name eth_transceiver [get_pins infra/eth/phy/transceiver_inst/gtwizard_inst/gtwizard_v2_5_gbe_gth_i/gt0_gtwizard_v2_5_gbe_gth_i/gthe2_i/TXOUTCLK]
