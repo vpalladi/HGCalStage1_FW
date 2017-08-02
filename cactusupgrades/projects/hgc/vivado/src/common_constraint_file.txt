@@ -1,0 +1,6 @@
+mp7_mgt.tcl
+area_constraints.tcl
+clock_constraints.tcl
+pins_xe.tcl
+pins.tcl
+impl_settings.tcl

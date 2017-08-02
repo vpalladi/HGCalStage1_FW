@@ -23,8 +23,8 @@ use STD.TEXTIO.all;
 entity cluster_data is
 
   generic (
-    nRows    : integer := 5;
-    nColumns : integer := 5
+    nRows    : natural := 5;
+    nColumns : natural := 5
     );
   port (
     clk : in std_logic;
@@ -47,6 +47,9 @@ end entity cluster_data;
 
 architecture arch_cluster_data of cluster_data is
 
+  signal flaggedWordOut_internal : hgcFlaggedWord := HGCFLAGGEDWORD_NULL;
+  signal dataValid_internal      : std_logic := '0';
+  
   signal addrA             : std_logic_vector(5 downto 0);
   signal dataA_in          : std_logic_vector(31 downto 0);
   signal addrB             : std_logic_vector(5 downto 0);
@@ -63,12 +66,21 @@ architecture arch_cluster_data of cluster_data is
   signal valid_1 : std_logic := '0';
 
   signal veto  : std_logic := '0';
+
+  signal internal_sent : std_logic := '0';
   
 begin  -- architecture arch_cluster_data
 
   -----------------------------------------------------------------------------
   -- outputs
   -----------------------------------------------------------------------------
+
+  p_outputs: process (clk) is
+  begin  -- process p_outputs
+    if rising_edge(clk) then
+      sent <= internal_sent;
+    end if;
+  end process p_outputs;
   
   
   -----------------------------------------------------------------------------
@@ -78,7 +90,7 @@ begin  -- architecture arch_cluster_data
   -- port A
   weA       <= we or erase;
   addrA     <= row & col;
-  dataValid <= valid or valid_1;
+  dataValid_internal <= valid or valid_1;
 
   e_hgcFlagged2ram : entity work.hgcFlagged2ram
     port map (
@@ -88,8 +100,6 @@ begin  -- architecture arch_cluster_data
 
   -- port B
   p_addrB : process (clk) is
-    --variable r : std_logic_vector(2 downto 0) := (others => '0');
-    --variable c : std_logic_vector(2 downto 0) := (others => '0');
     variable r : integer := 0;
     variable c : integer := 0;
     variable L : line;
@@ -99,23 +109,23 @@ begin  -- architecture arch_cluster_data
       if rst = '0' then
         r     := 0;
         c     := 0;
-        sent  <= '0';
+        internal_sent  <= '0';
         valid <= '0';
       elsif send = '1' then
         if c = (nColumns-1) and r = (nRows-1) then
           r     := r;
           c     := c;
-          sent  <= '1';
+          internal_sent  <= '1';
           valid <= '0';
         elsif c = (nColumns-1) then
           r     := r+1;
           c     := 0;
-          sent  <= '0';
+          internal_sent  <= '0';
           valid <= '1';
         else
           r     := r;
           c     := c+1;
-          sent  <= '0';
+          internal_sent  <= '0';
           valid <= '1';
         end if;
       end if;
@@ -126,11 +136,15 @@ begin  -- architecture arch_cluster_data
       
       addrB <= std_logic_vector(to_unsigned(r, row'length)) & std_logic_vector(to_unsigned(c, col'length));
       if veto = '1' then
-        flaggedWordOut <= ramFlaggedWordOut;
+        flaggedWordOut_internal <= ramFlaggedWordOut;
       else
-        flaggedWordOut <= HGCFLAGGEDWORD_NULL;
+        flaggedWordOut_internal <= HGCFLAGGEDWORD_NULL;
       end if;
 
+      -- trying to improve timing 
+      flaggedWordOut <= flaggedWordOut_internal;
+      dataValid      <= dataValid_internal;
+      
     end if;
   end process p_addrB;
 

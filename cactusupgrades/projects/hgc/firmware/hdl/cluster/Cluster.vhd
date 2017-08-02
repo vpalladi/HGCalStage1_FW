@@ -23,8 +23,9 @@ use work.hgc_constants.all;
 entity cluster is
 
   generic (
-    nRows    : integer;
-    nColumns : integer
+    nRows    : natural;
+    nColumns : natural;
+    csvLatencyFile : string := "./latency.csv"  
     );
 
   port (
@@ -35,7 +36,7 @@ entity cluster is
     delayedFlaggedWordIn : in hgcFlaggedWord := HGCFLAGGEDWORD_NULL;
 
     -- occupancy I/O
-    occupancy         : out std_logic_matrix(0 to nRows-1, 0 to nColumns-1) := (others => (others => '0'));
+    occupancy         : inout std_logic_matrix(0 to nRows-1, 0 to nColumns-1) := (others => (others => '0'));
     occupancyComputed : in std_logic_matrix(0 to nRows-1, 0 to nColumns-1) := (others => (others => '0'));
     readyToCompute    : out std_logic := '0';
     computed          : in  std_logic := '0';
@@ -60,6 +61,7 @@ architecture arch_1 of cluster is
     -- fsm
   type fsm is (fsm_waitingSeed, fsm_waitingEndOfFrame, fsm_acquiringWords, fsm_waitingComputing, fsm_waitingSend, fsm_sending, fsm_sent, fsm_resetting);
   signal state : fsm;
+  signal state_1 : fsm;
 
   -- occupancy computed 
   signal occupancyComputed_internal : std_logic_matrix(0 to nRows-1, 0 to nColumns-1) := (others => (others => '0'));
@@ -67,6 +69,8 @@ architecture arch_1 of cluster is
   -- flaggedWord in and flaggedWordSeed
   signal flaggedWordIn   : hgcFlaggedWord;
   signal flaggedWordIn_1 : hgcFlaggedWord;
+  signal flaggedWordIn_2 : hgcFlaggedWord;
+  signal flaggedWordIn_3 : hgcFlaggedWord;
   signal flaggedWordSeed : hgcFlaggedWord := HGCFLAGGEDWORD_NULL;
 
   -- data storage
@@ -75,14 +79,22 @@ architecture arch_1 of cluster is
   signal data_send : std_logic := '0';
   signal data_sent : std_logic := '0';
   signal data_we : std_logic := '0';
-  signal row : std_logic_vector(2 downto 0) := (others => '0');
-  signal col : std_logic_vector(2 downto 0) := (others => '0');  
+  signal row   : signed(6 downto 0) := (others => '0');
+  signal col   : signed(6 downto 0) := (others => '0');  
+  signal row_1 : signed(6 downto 0) := (others => '0');
+  signal col_1 : signed(6 downto 0) := (others => '0');  
 
   -- internals
   signal seedAcquired : std_logic := '0';
   signal detectedEOE  : std_logic := '0';
   signal ena_occupancy : std_logic := '0';
 
+  -- acquisition and occupancy
+  signal weSeed   : std_logic := '0';
+  signal weWord   : std_logic := '0';
+  signal weSeed_1   : std_logic := '0';
+  signal weWord_1   : std_logic := '0';
+  
   
 begin  -- architecture arch_1
 
@@ -98,6 +110,8 @@ begin  -- architecture arch_1
   begin  -- process p_flaggedWordInDelay
     if rising_edge(clk) then
       flaggedWordIn_1 <= flaggedWordIn;
+      flaggedWordIn_2 <= flaggedWordIn_1;
+      flaggedWordIn_3 <= flaggedWordIn_2;
     end if;
   end process p_flaggedWordIn_delay;
 
@@ -107,6 +121,7 @@ begin  -- architecture arch_1
       input  => computed,
       output => ena_occupancy
       );
+
   
   -----------------------------------------------------------------------------
   -- outputs
@@ -129,52 +144,75 @@ begin  -- architecture arch_1
   
   
   -------------------------------------------------------------------------------
-  -- acquire the seed 
+  -- acquiring data and seeds
   -------------------------------------------------------------------------------
-  p_acquisition : process (clk) is
-    variable seed_row : integer   := 0;
-    variable seed_col : integer   := 0;
-    variable data_row : integer   := 0;
-    variable data_col : integer   := 0;
-    variable clu_row  : integer   := 0;
-    variable clu_col  : integer   := 0;
-    variable weSeed   : std_logic := '0';
-    variable weWord   : std_logic := '0';
-  begin
 
+  -- detect EOE
+  p_EOE: process (clk) is
+  begin  -- process p_EOE
     if rising_edge(clk) then
 
       -- EOE
       if rst = '0' or state = fsm_sent then
         detectedEOE <= '0';
-      elsif flaggedWordIn.word.EOE = '1' and flaggedWordIn.bxId = flaggedWordSeed.bxId and enaSeed = '0' then
+      elsif flaggedWordIn_3.word.EOE = '1' and flaggedWordIn_3.bxId = flaggedWordSeed.bxId and enaSeed = '0' then
         detectedEOE <= '1';
       else
         detectedEOE <= detectedEOE;
       end if;
+      
+    end if;
+  end process p_EOE;
 
+  
+  -- wright eneable seed and word, seed acquired flagged word seed we
+  p_we: process (clk) is
+  begin  -- process p_we
+    if rising_edge(clk) then
+      
       -- seed
       if rst = '0' or state = fsm_sent then
         flaggedWordSeed <= HGCFLAGGEDWORD_NULL;
         seedAcquired    <= '0';
-        weSeed          := '0';
-        weWord          := '0';
+        weSeed          <= '0';
+        weWord          <= '0';
       elsif flaggedWordIn.seedFlag = '1' and enaSeed = '1' and detectedEOE = '0' then
         flaggedWordSeed <= flaggedWordIn;
         seedAcquired    <= '1';
-        weSeed          := '1';
-        weWord          := '0';
+        weSeed          <= '1';
+        weWord          <= '0';
       elsif flaggedWordIn.dataFlag = '1' and flaggedWordIn.word.valid = '1' and detectedEOE = '1' then
         flaggedWordSeed <= flaggedWordSeed;
         seedAcquired    <= seedAcquired;
-        weSeed          := '0';
-        weWord          := '1';
+        weSeed          <= '0';
+        weWord          <= '1';
       else
         flaggedWordSeed <= flaggedWordSeed;
         seedAcquired    <= seedAcquired;
-        weSeed          := '0';
-        weWord          := '0';
+        weSeed          <= '0';
+        weWord          <= '0';
       end if;
+
+      weSeed_1 <= weSeed;
+      weWord_1 <= weWord;
+      
+    end if;
+  end process p_we;
+
+  
+  -- acquire seed or data
+  p_acquisition : process (clk) is
+    variable nbits : integer := 6;
+    
+    variable seed_row : unsigned(nbits-1 downto 0) := (others => '0');
+    variable seed_col : unsigned(nbits-1 downto 0) := (others => '0');
+    variable data_row : unsigned(nbits-1 downto 0) := (others => '0');
+    variable data_col : unsigned(nbits-1 downto 0) := (others => '0');
+    variable clu_row  : std_logic_vector(nbits downto 0)     := (others => '0');
+    variable clu_col  : std_logic_vector(nbits downto 0)     := (others => '0');
+  begin
+
+    if rising_edge(clk) then
 
       -- addressing the rows
       if weSeed = '1' then  -- seed is placed in the cluster's centre
@@ -186,72 +224,91 @@ begin  -- architecture arch_1
         --      000  010  100 
         --
 
-        if flaggedWordin.word.address.wafer = "000" then
-          seed_row := 8  + to_integer( unsigned(flaggedWordin.word.address.row) ) ;
-          seed_col := 0  + to_integer( unsigned(flaggedWordin.word.address.col) ) ;
-        elsif flaggedWordin.word.address.wafer = "001" then
-          seed_row := 16 + to_integer( unsigned(flaggedWordin.word.address.row) ) ;
-          seed_col := 4  + to_integer( unsigned(flaggedWordin.word.address.col) ) ;
-        elsif flaggedWordin.word.address.wafer = "010" then
-          seed_row := 4  + to_integer( unsigned(flaggedWordin.word.address.row) ) ;
-          seed_col := 4  + to_integer( unsigned(flaggedWordin.word.address.col) ) ;
-        elsif flaggedWordin.word.address.wafer = "011" then
-          seed_row := 12 + to_integer( unsigned(flaggedWordin.word.address.row) ) ;
-          seed_col := 8  + to_integer( unsigned(flaggedWordin.word.address.col) ) ;
-        elsif flaggedWordin.word.address.wafer = "100" then
-          seed_row := 0  + to_integer( unsigned(flaggedWordin.word.address.row) ) ;
-          seed_col := 8  + to_integer( unsigned(flaggedWordin.word.address.col) ) ;
-        elsif flaggedWordin.word.address.wafer = "101" then
-          seed_row := 8  + to_integer( unsigned(flaggedWordin.word.address.row) ) ;
-          seed_col := 12 + to_integer( unsigned(flaggedWordin.word.address.col) ) ;
+        if flaggedWordIn_1.word.address.wafer = "000" then
+          seed_row := to_unsigned(8  + to_integer( unsigned(flaggedWordIn_1.word.address.row) ), nbits) ;
+          seed_col := to_unsigned(0  + to_integer( unsigned(flaggedWordIn_1.word.address.col) ), nbits) ;
+        elsif flaggedWordIn_1.word.address.wafer = "001" then                                             
+          seed_row := to_unsigned(16 + to_integer( unsigned(flaggedWordIn_1.word.address.row) ), nbits) ;
+          seed_col := to_unsigned(4  + to_integer( unsigned(flaggedWordIn_1.word.address.col) ), nbits) ;
+        elsif flaggedWordIn_1.word.address.wafer = "010" then                                             
+          seed_row := to_unsigned(4  + to_integer( unsigned(flaggedWordIn_1.word.address.row) ), nbits) ;
+          seed_col := to_unsigned(4  + to_integer( unsigned(flaggedWordIn_1.word.address.col) ), nbits) ;
+        elsif flaggedWordIn_1.word.address.wafer = "011" then                                             
+          seed_row := to_unsigned(12 + to_integer( unsigned(flaggedWordIn_1.word.address.row) ), nbits) ;
+          seed_col := to_unsigned(8  + to_integer( unsigned(flaggedWordIn_1.word.address.col) ), nbits) ;
+        elsif flaggedWordIn_1.word.address.wafer = "100" then                                             
+          seed_row := to_unsigned(0  + to_integer( unsigned(flaggedWordIn_1.word.address.row) ), nbits) ;
+          seed_col := to_unsigned(8  + to_integer( unsigned(flaggedWordIn_1.word.address.col) ), nbits) ;
+        elsif flaggedWordIn_1.word.address.wafer = "101" then                                             
+          seed_row := to_unsigned(8  + to_integer( unsigned(flaggedWordIn_1.word.address.row) ), nbits) ;
+          seed_col := to_unsigned(12 + to_integer( unsigned(flaggedWordIn_1.word.address.col) ), nbits) ;
+        end if;                                                                                            
+                                                                                                           
+        row <= to_signed( ( nRows   -1 )/2 , nbits+1 );                                    
+        col <= to_signed( ( nColumns-1 )/2 , nbits+1 );                                    
+                                                                                                           
+      elsif weWord = '1' then                                                                              
+                                                                                                           
+        if    flaggedWordIn_1.word.address.wafer = "000" then                                              
+          data_row := to_unsigned(8  + to_integer( unsigned(flaggedWordIn_1.word.address.row) ), nbits) ;
+          data_col := to_unsigned(0  + to_integer( unsigned(flaggedWordIn_1.word.address.col) ), nbits) ;
+        elsif flaggedWordIn_1.word.address.wafer = "001" then                                             
+          data_row := to_unsigned(16 + to_integer( unsigned(flaggedWordIn_1.word.address.row) ), nbits) ;
+          data_col := to_unsigned(4  + to_integer( unsigned(flaggedWordIn_1.word.address.col) ), nbits) ;
+        elsif flaggedWordIn_1.word.address.wafer = "010" then                                             
+          data_row := to_unsigned(4  + to_integer( unsigned(flaggedWordIn_1.word.address.row) ), nbits) ;
+          data_col := to_unsigned(4  + to_integer( unsigned(flaggedWordIn_1.word.address.col) ), nbits) ;
+        elsif flaggedWordIn_1.word.address.wafer = "011" then                                             
+          data_row := to_unsigned(12 + to_integer( unsigned(flaggedWordIn_1.word.address.row) ), nbits) ;
+          data_col := to_unsigned(8  + to_integer( unsigned(flaggedWordIn_1.word.address.col) ), nbits) ;
+        elsif flaggedWordIn_1.word.address.wafer = "100" then                                             
+          data_row := to_unsigned(0  + to_integer( unsigned(flaggedWordIn_1.word.address.row) ), nbits) ;
+          data_col := to_unsigned(8  + to_integer( unsigned(flaggedWordIn_1.word.address.col) ), nbits) ;
+        elsif flaggedWordIn_1.word.address.wafer = "101" then                                             
+          data_row := to_unsigned(8  + to_integer( unsigned(flaggedWordIn_1.word.address.row) ), nbits) ;
+          data_col := to_unsigned(12 + to_integer( unsigned(flaggedWordIn_1.word.address.col) ), nbits) ;
         end if;
-        
-        clu_row := ( nRows   -1 )/2 ;
-        clu_col := ( nColumns-1 )/2 ;
 
-      elsif weWord = '1' then
+        row <= to_signed( to_integer(data_row) - to_integer(seed_row) + ( nRows   -1 )/2 , nbits+1 );          
+        col <= to_signed( to_integer(data_col) - to_integer(seed_col) + ( nColumns-1 )/2 , nbits+1 );
 
-        if flaggedWordIn.word.address.wafer = "000" then
-          data_row := 8  + to_integer( unsigned(flaggedWordIn.word.address.row) ) ;
-          data_col := 0  + to_integer( unsigned(flaggedWordIn.word.address.col) ) ;
-        elsif flaggedWordIn.word.address.wafer = "001" then
-          data_row := 16 + to_integer( unsigned(flaggedWordIn.word.address.row) ) ;
-          data_col := 4  + to_integer( unsigned(flaggedWordIn.word.address.col) ) ;
-        elsif flaggedWordIn.word.address.wafer = "010" then
-          data_row := 4  + to_integer( unsigned(flaggedWordIn.word.address.row) ) ;
-          data_col := 4  + to_integer( unsigned(flaggedWordIn.word.address.col) ) ;
-        elsif flaggedWordIn.word.address.wafer = "011" then
-          data_row := 12 + to_integer( unsigned(flaggedWordIn.word.address.row) ) ;
-          data_col := 8  + to_integer( unsigned(flaggedWordIn.word.address.col) ) ;
-        elsif flaggedWordIn.word.address.wafer = "100" then
-          data_row := 0  + to_integer( unsigned(flaggedWordIn.word.address.row) ) ;
-          data_col := 8  + to_integer( unsigned(flaggedWordIn.word.address.col) ) ;
-        elsif flaggedWordIn.word.address.wafer = "101" then
-          data_row := 8  + to_integer( unsigned(flaggedWordIn.word.address.row) ) ;
-          data_col := 12 + to_integer( unsigned(flaggedWordIn.word.address.col) ) ;
-        end if;
+      else
 
-        clu_row := data_row - seed_row + ( nRows   -1 )/2 ;          
-        clu_col := data_col - seed_col + ( nColumns-1 )/2 ;
+        row <= to_signed(-1, nbits+1);
+        col <= to_signed(-1, nbits+1);
         
       end if;
 
-      if clu_row > -1 and clu_row < nRows then
-        row <= std_logic_vector( to_unsigned(clu_row, row'length ) );
-      else
-        row <= (others => '0'); 
-      end if;
+--      row <= clu_row ;  
+--      col <= clu_col ;
+      
+--      if  ( to_integer( signed(clu_row) ) > -1 and to_integer( signed(clu_row) ) < nRows ) and ( to_integer( signed(clu_col) ) > -1 and to_integer( signed(clu_col) ) < nColumns ) then
+--        row <= clu_row(2 downto 0) ;  
+--        col <= clu_col(2 downto 0) ;
+--        
+--      else
+--        col <= std_logic_vector( to_signed( ( nRows   -1 )/2 , 3) );
+--        row <= std_logic_vector( to_signed( ( nRows   -1 )/2 , 3) );
+--      end if;
 
-      if clu_col > -1 and clu_col < nColumns then
-        col <= std_logic_vector( to_unsigned(clu_col, col'length ) );
-      else
-        col <= (others => '0');
-      end if;
+    end if;
+  end process p_acquisition;
 
+  
+  -- occupancy MAP
+  p_occupancy: process (clk) is
+    variable clu_row  : integer   := 0;
+    variable clu_col  : integer   := 0;
+  begin 
+    if rising_edge(clk) then
+
+      clu_row := to_integer(row);
+      clu_col := to_integer(col); 
+      
       -- loop to we the correct row
       --l_rows : for irow in 0 to nRows-1 loop
-      if (weSeed = '1' or weWord = '1') and (state = fsm_waitingSeed or state = fsm_acquiringWords) then
-        if flaggedWordIn.word.valid = '1' then
+      if (weSeed_1 = '1' or weWord_1 = '1') and (state_1 = fsm_waitingSeed or state_1 = fsm_acquiringWords) then
+        if flaggedWordIn_2.word.valid = '1' then
           if clu_row > -1 and clu_row < nRows then
             if clu_col > -1 and clu_col < nColumns then
               data_we <= '1';
@@ -265,7 +322,7 @@ begin  -- architecture arch_1
         else
           data_we <= '0';
         end if;
-      elsif state = fsm_resetting then
+      elsif state_1 = fsm_resetting then
         data_we <= '0';
         l_rows : for irow in 0 to nRows-1 loop
           l_cols : for icol in 0 to nColumns-1 loop
@@ -275,11 +332,13 @@ begin  -- architecture arch_1
       else
         data_we <= '0';
       end if;
+
+      row_1 <= row;
+      col_1 <= col;
+      
       --end loop l_rows;
-
     end if;
-
-  end process p_acquisition;
+  end process p_occupancy;
 
 
   -----------------------------------------------------------------------------
@@ -287,9 +346,20 @@ begin  -- architecture arch_1
   -----------------------------------------------------------------------------
   data_send <= '1' when send = '1' else '0';
 
-  occupancyComputed_internal <= occupancyComputed when ena_occupancy = '1' else
-                                (others => (others => '0')) when rst = '0' else
-                                occupancyComputed_internal;
+  p_occupancy_computed: process (clk) is
+  begin  -- process p_occupancy_computed
+    if rising_edge(clk) then
+
+      if rst = '0' then
+        occupancyComputed_internal <= (others => (others => '0'));
+      elsif ena_occupancy = '1' then
+        occupancyComputed_internal <= occupancyComputed;
+      else
+        occupancyComputed_internal <= occupancyComputed_internal;
+      end if;
+
+    end if;   
+  end process p_occupancy_computed;
   
   e_cluster_data : entity work.cluster_data
     generic map (
@@ -300,9 +370,9 @@ begin  -- architecture arch_1
       clk            => clk,
       rst            => rst,
       we             => data_we,
-      row            => row,
-      col            => col,
-      flaggedWordIn  => flaggedWordIn_1,
+      row            => std_logic_vector( row_1(2 downto 0) ),
+      col            => std_logic_vector( col_1(2 downto 0) ),
+      flaggedWordIn  => flaggedWordIn_3,
       send           => data_send,
       occupancy      => occupancyComputed_internal,
       sent           => data_sent,
@@ -343,7 +413,7 @@ begin  -- architecture arch_1
           end if;
         -- acquiring words
         when fsm_acquiringWords =>
-          if flaggedWordIn.bxId = flaggedWordSeed.bxId and flaggedWordIn.word.EOE = '1' then
+          if flaggedWordIn_3.bxId = flaggedWordSeed.bxId and flaggedWordIn_3.word.EOE = '1' then
             state <= fsm_waitingComputing;
           elsif rst = '0' then
             state <= fsm_resetting;
@@ -384,10 +454,14 @@ begin  -- architecture arch_1
           state <= fsm_waitingSeed;
       end case;
 
+      state_1 <= state;
+      
     end if;
   end process process_fsm;
-  
 
+
+  
+  -----------------------------------------------------------------------------
   -----------------------------------------------------------------------------
   -- TXT IO
   -----------------------------------------------------------------------------
@@ -398,7 +472,7 @@ begin  -- architecture arch_1
 
       variable clk_counter : integer := 0;
 
-      file out_csv : text open append_mode is "latency.csv";
+      file out_csv : text open append_mode is csvLatencyFile;
       variable L : line;
       variable sAcquired : integer := 0;
       variable beginComputing : integer := 0;
@@ -470,6 +544,37 @@ begin  -- architecture arch_1
     if rising_edge(clk) then
       if state = fsm_sending and printed = '0' then
         printed := '1';
+
+        -----------------------------------------------------------------------
+        -- computed occupancy 
+        -----------------------------------------------------------------------
+        WRITE(L, string' ("*** OCCUPANCY MAP*** "));
+        WRITELINE(OUTPUT, L);
+
+        WRITE(L, string' ("  "));
+        for icol in nColumns-1 downto 0 loop
+          --WRITE(L, (icol + to_integer(unsigned(flaggedWordSeed.word.address.col)) - (nColumns-1)/2));
+          WRITE( L, (icol) );
+          WRITE( L, string' (" ") );
+        end loop;
+        WRITELINE(OUTPUT, L);
+
+        for irow in nRows-1 downto 0  loop
+          --WRITE(L, (irow + to_integer(unsigned(flaggedWordSeed.word.address.row)) - (nRows-1)/2));
+          WRITE( L, (irow) );
+          WRITE( L, string' (" ") );
+          for icol in nColumns-1 downto 0 loop
+            --WRITE(L, occupancy(irow, icol));
+            WRITE( L, occupancy(irow, icol) );
+            WRITE( L, string' (" ") );
+          end loop;
+          WRITELINE(OUTPUT, L);
+
+        end loop;
+
+        -----------------------------------------------------------------------
+        -- computed occupancy 
+        -----------------------------------------------------------------------
         WRITE(L, string' ("*** OCCUPANCY COM*** "));
         WRITELINE(OUTPUT, L);
 
@@ -493,6 +598,8 @@ begin  -- architecture arch_1
           WRITELINE(OUTPUT, L);
 
         end loop;
+
+        
 --      elsif state = fsm_sending and printed = '1' and printedO = '0' then
 --        printedO := '1';
 --        WRITE(L, string' ("*** OCCUPANCY ROW*** "));
@@ -524,7 +631,9 @@ begin  -- architecture arch_1
   end process process_writeOutput;
   
   end generate g_for_simulation_ONLY;
-  
+  -----------------------------------------------------------------------------
+  -- END TXTIO
+  -----------------------------------------------------------------------------
 
 end architecture arch_1;
 

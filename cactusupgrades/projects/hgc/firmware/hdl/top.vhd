@@ -31,7 +31,9 @@ entity MainProcessorTop is
 --    linkId    : natural := 0;
 --    nClusters : natural := 56
     nClusters : natural := 6;
-    nLinks    : natural := 4
+    nRows     : natural := 5;
+    nColumns  : natural := 5;
+    nLinks    : natural := 72
     );
   port(
     clk       : in  std_logic;                  --! The algorithm clock
@@ -64,7 +66,9 @@ begin
     e_link: entity work.Link
 --    e_link: entity work.Link_test
       generic map (
-        nClusters => nClusters
+        nClusters => nClusters,
+        nRows => nRows,
+        nColumns => nColumns
         )
       port map (
         clk                => clk,

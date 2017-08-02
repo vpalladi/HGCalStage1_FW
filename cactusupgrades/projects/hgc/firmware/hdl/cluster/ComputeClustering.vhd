@@ -15,8 +15,8 @@ use work.hgc_data_types.all;
 
 entity computeClu is
   generic (
-    nRows    : integer := 5;
-    nColumns : integer := 5;
+    nRows    : natural := 5;
+    nColumns : natural := 5;
     nIterations : natural := 5
     );
   port (

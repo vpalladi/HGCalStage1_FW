@@ -1,7 +1,7 @@
-# Constraints specific to '690 MP7
+## Constraints specific to '690 MP7
 
 set_property LOC GTHE2_CHANNEL_X1Y36 [get_cells -hier -filter {name=~infra/eth/*/gthe2_i}]
-set_property LOC GTHE2_CHANNEL_X1Y37 [get_cells -hier -filter {name=~readout/amc13/*/gthe2_i}]
+#set_property LOC GTHE2_CHANNEL_X1Y37 [get_cells -hier -filter {name=~readout/amc13/*/gthe2_i}]
 
 # Format is x_loc y_start x_common_loc y_common_loc
 

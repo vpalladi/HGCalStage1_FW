@@ -178,12 +178,12 @@ clean: FORCE
 	rm -f transcript
 
 sim:
-	vsim -gsourcefile="data/out.mp7" -gdestinationfile="results/out.mp7" -L $(LIB_NAME) -t 1ps -L dist_mem_gen_v8_0_11 -L blk_mem_gen_v8_3_5 -L unisims_ver -L unimacro_ver -L secureip -lib $(LIB_NAME) -novopt $(LIB_NAME).TestBench
+	vsim -gsourcefile="out.mp7" -gdestinationfile="out_FW.mp7" -L $(LIB_NAME) -t 1ps -L dist_mem_gen_v8_0_11 -L blk_mem_gen_v8_3_5 -L unisims_ver -L unimacro_ver -L secureip -lib $(LIB_NAME) -novopt $(LIB_NAME).TestBench
 #	vsim -voptargs=""+acc"" -L xil_defaultlib -L xpm -L dist_mem_gen_v8_0_11 -L blk_mem_gen_v8_3_5 -L unisims_ver -L unimacro_ver -L secureip -lib xil_defaultlib xil_defaultlib.TestBench xil_defaultlib.glbl -novopt 
 #	vsim -novopt work.testbench
 #	vsim work.testbench
 
 sim_no_gui:
-	vsim -c -gsourcefile="data/outR_0.mp7" -gdestinationfile="results/outR_0.mp7" -L $(LIB_NAME) -t 1ps -L dist_mem_gen_v8_0_11 -L blk_mem_gen_v8_3_5 -L unisims_ver -L unimacro_ver -L secureip -lib $(LIB_NAME) -novopt $(LIB_NAME).TestBench
+	vsim -c -gsourcefile="out.mp7" -gdestinationfile="out.mp7" -L $(LIB_NAME) -t 1ps -L dist_mem_gen_v8_0_11 -L blk_mem_gen_v8_3_5 -L unisims_ver -L unimacro_ver -L secureip -lib $(LIB_NAME) -novopt $(LIB_NAME).TestBench
 
 FORCE:

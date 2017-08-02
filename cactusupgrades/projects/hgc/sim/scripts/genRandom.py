@@ -4,7 +4,7 @@
 # python
 import sys
 sys.path.append('/home/vpalladi/SW/HGC/sim/HgcTpgSim/python/naming')
-from os import listdir,path
+from os import listdir,path,makedirs
 from optparse import OptionParser
 
 import numpy as np
@@ -21,27 +21,45 @@ from modules.panel import *
 from modules.points import *
 from modules.seedButton import *
 
-
 ###
 # main 
 def main():
 
-    WAFER_WIDTH = 12.37 # 8'
-    WAFER_SIDE = WAFER_WIDTH/math.sqrt(3.0)
-
     parser = OptionParser()
-    parser.add_option('-n', '--nEvents', dest='nEvt',
+    parser.add_option('-n', '--nEvents', dest='nEvt', default='10',
                       help='Number of event to generate')
-    parser.add_option('-N', '--Nfirst', dest='nFirst',
+    parser.add_option('--first_event_id', dest='firstEvtId', default='0',
                       help='First event ID')
+    parser.add_option('-d', '--directory', dest='destinationFolder',
+                      help='Destination folder')
+    parser.add_option('--n_seeds', dest='nSeeds', default='1',
+                      help='Number of seeds to generate.')
+    parser.add_option('--n_non_seeds_min', dest='nNonSeeds_min', default='10',
+                      help='Non seeds tc random generation minimum.')
+    parser.add_option('--n_non_seeds_max', dest='nNonSeeds_max', default='50',
+                      help='Non seeds tc random generation maximum.')
     (opt, args) = parser.parse_args()
 
-    nFirst = int(opt.nFirst)
+    # create target dir if it doesn't exist
+    if( not path.isdir(opt.destinationFolder) ) :
+        makedirs(opt.destinationFolder)
+    
+    f = file(opt.destinationFolder+'/'+opt.destinationFolder+'_generation.log', 'w')
+    for key,value in opt.__dict__.iteritems() :
+        f.write( key+' '+value+'\n' )
+    f.close()
+        
+    WAFER_WIDTH = 12.37 # 8'
+    WAFER_SIDE = WAFER_WIDTH/math.sqrt(3.0)
+    
+    nFirst = int(opt.firstEvtId)
+    
     for i_evt in range( 0, int(opt.nEvt) ) :
-        print ' >>> Event ',i_evt+nFirst 
+        print ' >>> Generating event ',i_evt+nFirst 
         p = Panel( WAFER_SIDE )
-        p.gen_random_event( nNonSeeds=np.random.randint(10,50) )
-        p.dump_to_file( fileName='data/outR_'+str(i_evt+nFirst)+'.mp7' )
+        p.gen_random_event( nSeeds = int(opt.nSeeds), nNonSeeds=np.random.randint( int(opt.nNonSeeds_min), int(opt.nNonSeeds_max) ) )
+        p.dump_to_file( fileName=opt.destinationFolder+'/outR_'+str(i_evt+nFirst)+'.mp7' )
+
 
 ###
 # if python says run, then we should run

@@ -3,6 +3,8 @@
 ##   Vito Palladino (vito.palladino@cern.ch) 
 ##   10/03/2017
 ##
+##   modified 02/08/2017 : al the sources are in ./src
+##
 
 # Set the reference directory for source file relative paths (by default the value is script directory path)
 set origin_dir "."
@@ -82,21 +84,30 @@ if {[string equal [get_filesets -quiet sources_1] ""]} {
 # Set 'sources_1' fileset object
 set obj [get_filesets sources_1]
 
-set file_vhd [open "vhd" r]
-set vhd_files [read $file_vhd]
+set file_src [open "src/common_sources.txt" r]
+set files [read $file_src]
 
-foreach f $vhd_files {
+foreach f $files {
     puts "HGCINFO: adding file $f"
     add_files -norecurse -fileset $obj "[file normalize "$origin_dir$f"]"
 }
+
+set file_src [open "src/project_sources.txt" r]
+set files [read $file_src]
+
+foreach f $files {
+    puts "HGCINFO: adding file $f"
+    add_files -norecurse -fileset $obj "[file normalize "$origin_dir$f"]"
+}
+
 
 puts "HGCINFO: setting the top as top"
 set_property "top" "top" $obj
 
 
 # adding the ips and generating the targets 
-set file_ip [open "ip" r]
-set ip_files [read $file_ip]
+set file_src [open "src/ip.txt" r]
+set ip_files [read $file_src]
 
 foreach f $ip_files {
     puts "HGCINFO: adding file $origin_dir$f"
@@ -133,68 +144,39 @@ if {[string equal [get_filesets -quiet constrs_1] ""]} {
 # Set 'constrs_1' fileset object
 set obj [get_filesets constrs_1]
 
-# Add/Import constrs file and set constrs file properties
-set file "[file normalize "$origin_dir/../../../boards/mp7/base_fw/common/firmware/ucf/mp7_mgt.tcl"]"
-set file_added [add_files -fileset constrs_1 $file]
-set file "ucf/mp7_mgt.tcl"
-set file_obj [get_files -of_objects [get_filesets constrs_1] [list "*$file"]]
-set_property "file_type" "TCL" $file_obj
-set_property "used_in" "implementation" $file_obj
-set_property "used_in_simulation" "0" $file_obj
-set_property "used_in_synthesis" "0" $file_obj
+## adding the common infrastucure constraints
+set file_src [open "src/common_constraint_file.txt" r]
+set files [read $file_src]
 
-# Add/Import constrs file and set constrs file properties
-set file "[file normalize "$origin_dir/../../../boards/mp7/base_fw/common/firmware/ucf/area_constraints.tcl"]"
-set file_added [add_files -fileset constrs_1 $file]
-set file "ucf/area_constraints.tcl"
-set file_obj [get_files -of_objects [get_filesets constrs_1] [list "*$file"]]
-set_property "file_type" "TCL" $file_obj
-set_property "used_in" "implementation" $file_obj
-set_property "used_in_simulation" "0" $file_obj
-set_property "used_in_synthesis" "0" $file_obj
+foreach f $files {
 
-# Add/Import constrs file and set constrs file properties
-set file "[file normalize "$origin_dir/../../../boards/mp7/base_fw/common/firmware/ucf/clock_constraints.tcl"]"
-set file_added [add_files -fileset constrs_1 $file]
-set file "ucf/clock_constraints.tcl"
-set file_obj [get_files -of_objects [get_filesets constrs_1] [list "*$file"]]
-set_property "file_type" "TCL" $file_obj
-set_property "used_in" "implementation" $file_obj
-set_property "used_in_simulation" "0" $file_obj
-set_property "used_in_synthesis" "0" $file_obj
+    set file "[file normalize "$origin_dir/../../../boards/mp7/base_fw/common/firmware/ucf/$f"]"
+    set file_added [add_files -fileset constrs_1 $file]
+    set file "ucf/$f"
+    set file_obj [get_files -of_objects [get_filesets constrs_1] [list "*$file"]]
+    set_property "file_type" "TCL" $file_obj
+    set_property "used_in" "implementation" $file_obj
+    set_property "used_in_simulation" "0" $file_obj
+    set_property "used_in_synthesis" "0" $file_obj
 
-# Add/Import constrs file and set constrs file properties
-set file "[file normalize "$origin_dir/../../../boards/mp7/base_fw/common/firmware/ucf/pins_xe.tcl"]"
-set file_added [add_files -fileset constrs_1 $file]
-set file "ucf/pins_xe.tcl"
-set file_obj [get_files -of_objects [get_filesets constrs_1] [list "*$file"]]
-set_property "file_type" "TCL" $file_obj
-set_property "used_in" "implementation" $file_obj
-set_property "used_in_simulation" "0" $file_obj
-set_property "used_in_synthesis" "0" $file_obj
+}
 
-# Add/Import constrs file and set constrs file properties
-set file "[file normalize "$origin_dir/../../../boards/mp7/base_fw/common/firmware/ucf/pins.tcl"]"
-set file_added [add_files -fileset constrs_1 $file]
-set file "ucf/pins.tcl"
-set file_obj [get_files -of_objects [get_filesets constrs_1] [list "*$file"]]
-set_property "file_type" "TCL" $file_obj
-set_property "used_in" "implementation" $file_obj
-set_property "used_in_simulation" "0" $file_obj
-set_property "used_in_synthesis" "0" $file_obj
+## adding project specific constraints
+set file_src [open "src/project_constraint_file.txt" r]
+set files [read $file_src]
 
-# Add/Import constrs file and set constrs file properties
-set file "[file normalize "$origin_dir/../../../boards/mp7/base_fw/common/firmware/ucf/impl_settings.tcl"]"
-set file_added [add_files -fileset constrs_1 $file]
-set file "ucf/impl_settings.tcl"
-set file_obj [get_files -of_objects [get_filesets constrs_1] [list "*$file"]]
-set_property "file_type" "TCL" $file_obj
-set_property "used_in" "implementation" $file_obj
-set_property "used_in_simulation" "0" $file_obj
-set_property "used_in_synthesis" "0" $file_obj
+foreach f $files {
 
-# Set 'constrs_1' fileset properties
-#set obj [get_filesets constrs_1]
+    set file "[file normalize "$origin_dir/../firmware/ucf/$f"]"
+    set file_added [add_files -fileset constrs_1 $file]
+    set file "ucf/$f"
+    set file_obj [get_files -of_objects [get_filesets constrs_1] [list "*$file"]]
+    set_property "file_type" "TCL" $file_obj
+    set_property "used_in" "implementation" $file_obj
+    set_property "used_in_simulation" "0" $file_obj
+    set_property "used_in_synthesis" "0" $file_obj
+
+}
 
 
 #########################################

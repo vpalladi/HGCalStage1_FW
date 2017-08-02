@@ -26,7 +26,10 @@ use STD.TEXTIO.all;
 
 entity Link is
   generic (
-    nClusters : natural := 5
+    nClusters : natural := 5;
+    nRows : natural := 5;
+    nColumns : natural := 5;    
+    csvLatencyFile : string := "./latency.csv"
     );
   port (
     clk    : in std_logic;
@@ -126,8 +129,8 @@ begin  -- architecture Link_arch
   e_clusters : entity work.clusters
     generic map (
       nClusters => nClusters,
-      nRows    => 5,
-      nColumns => 5
+      nRows    => nRows,
+      nColumns => nColumns
       )
     port map (
       clk                     => clk,

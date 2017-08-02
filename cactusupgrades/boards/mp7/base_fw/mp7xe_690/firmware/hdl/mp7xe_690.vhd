@@ -247,29 +247,29 @@ begin
 
 -- Readout
 		
-	readout: entity work.mp7_readout
-		port map(
-			clk => clk_ipb,
-			rst => rst_ipb,
-			ipb_in => ipb_in_readout,
-			ipb_out => ipb_out_readout,
-			board_id => board_id,
-			ttc_clk => clk40,
-			ttc_rst => rst40,
-			ttc_cmd => ttc_cmd,
-			l1a => ttc_l1a,
-			l1a_flag => ttc_l1a_flag,
-			l1a_throttle => ttc_l1a_throttle,
-			bunch_ctr => bunch_ctr,
-			evt_ctr => evt_ctr,
-			orb_ctr => orb_ctr,			
-			clk_p => clk_p,
-			rst_p => rst_p,
-			cap_bus => cap_bus,
-			daq_bus_out => daq_bus_top,
-			daq_bus_in => daq_bus_bot,
-			amc13_refclk => eth_refclk
-		);
+--	readout: entity work.mp7_readout
+--		port map(
+--			clk => clk_ipb,
+--			rst => rst_ipb,
+--			ipb_in => ipb_in_readout,
+--			ipb_out => ipb_out_readout,
+--			board_id => board_id,
+--			ttc_clk => clk40,
+--			ttc_rst => rst40,
+--			ttc_cmd => ttc_cmd,
+--			l1a => ttc_l1a,
+--			l1a_flag => ttc_l1a_flag,
+--			l1a_throttle => ttc_l1a_throttle,
+--			bunch_ctr => bunch_ctr,
+--			evt_ctr => evt_ctr,
+--			orb_ctr => orb_ctr,			
+--			clk_p => clk_p,
+--			rst_p => rst_p,
+--			cap_bus => cap_bus,
+--			daq_bus_out => daq_bus_top,
+--			daq_bus_in => daq_bus_bot,
+--			amc13_refclk => eth_refclk
+--		);
 
 -- Payload
 		

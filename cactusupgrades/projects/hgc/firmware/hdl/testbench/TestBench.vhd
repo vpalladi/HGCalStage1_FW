@@ -29,8 +29,9 @@ entity TestBench is
   generic(
 
     sourcefile : string := "./data/out.mp7";
-    destinationfile : string := "./results/out.mp7"
-
+    destinationfile : string := "./results/out.mp7";
+    csvLatencyFile : string := "./latency.csv" 
+    
     );
 end TestBench;
 
@@ -75,7 +76,7 @@ begin
     variable L               : line;
     variable clk_count       : integer := -1;
 
-    --file out_csv : text open write_mode is "latency.csv";
+    --file out_csv : text open write_mode is csvLatencyFile;
     
   begin
 
@@ -113,6 +114,7 @@ begin
 
     end if;
   end process;
+  
 ---- =========================================================================================================================================================================================
 ---- THE ALGORITHMS UNDER TEST
 ---- =========================================================================================================================================================================================
@@ -127,6 +129,7 @@ begin
       linksIn_3 <= linksIn_2;
     end if;
   end process p_LinksInDelay;
+
 ----
 ----  
 ----  -- translate in hgc flagged words
@@ -150,7 +153,6 @@ begin
 ----      bxCounter      => bxCounter,
 ----      weSeed         => weSeed
 ----      );
-
   
   e_MainProcessor : entity work.MainProcessorTop
     port map(

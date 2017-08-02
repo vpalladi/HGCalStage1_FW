@@ -24,8 +24,9 @@ entity clusters is
 
   generic (
     nClusters : natural;
-    nRows     : integer;
-    nColumns  : integer
+    nRows     : natural;
+    nColumns  : natural;
+    csvLatencyFile : string := "./latency.csv" 
     );
 
   port (
@@ -54,10 +55,11 @@ architecture arch_clusters of clusters is
   type std_logic_matrix_array is array (nClusters-1 downto 0) of std_logic_matrix(0 to nRows-1, 0 to nColumns-1);
   
   -- clusters
-  signal current_clu : natural := 0;
+  --signal current_clu : natural := 0;
+  signal current_clu : std_logic_vector(5 downto 0) := (others => '0');      
   signal clu_occupancy      : std_logic_matrix_array;
   signal clu_readyToCompute : std_logic_array(nClusters-1 downto 0);
-  signal clu_computed       : std_logic_array(nClusters-1 downto 0);
+  signal clu_computed       : std_logic_array(nClusters-1 downto 0) := (others => '0');
   signal send               : std_logic_array(nClusters-1 downto 0) := (others => '0');
   signal clu_readyToSend    : std_logic_array(nClusters-1 downto 0);
   signal sent               : std_logic_array(nClusters-1 downto 0);
@@ -65,7 +67,7 @@ architecture arch_clusters of clusters is
 
   -- compute occupancy
   type fsm is (fsm_testCluster, fsm_computing, fsm_computed, fsm_clean);
-  --signal state : fsm := fsm_clean;
+  signal state : fsm := fsm_clean;
   
   signal comp_clean : std_logic := '0';
   signal comp_compute : std_logic := '0';
@@ -73,21 +75,25 @@ architecture arch_clusters of clusters is
   signal comp_occupancyMap : std_logic_matrix(0 to nRows-1, 0 to nColumns-1) := (others => (others => '0'));
   signal comp_occupancy : std_logic_matrix(0 to nRows-1, 0 to nColumns-1) := (others => (others => '0'));
 
-  signal bah : std_logic;
 begin  -- architecture arch_1
   
-
   -----------------------------------------------------------------------------
   -- clusters generation
   -----------------------------------------------------------------------------
-  clu_computed(current_clu) <= comp_computed;
+  p_clu_computed: process (clk) is
+  begin  -- process p_clu_computed
+    if rising_edge(clk) then
+      clu_computed(to_integer(unsigned(current_clu))) <= comp_computed;
+    end if;
+  end process p_clu_computed;
   
   g_clusters : for i_clu in nClusters-1 downto 0 generate
 
       e_cluster : entity work.cluster
         generic map (
           nRows    => nRows,
-          nColumns => nColumns
+          nColumns => nColumns,
+          csvLatencyFile => csvLatencyFile & "_" & integer'image(i_clu) & ".csv"
           )
         port map (
           clk                     => clk,
@@ -108,7 +114,13 @@ begin  -- architecture arch_1
           sent                    => sent(i_clu),
           flaggedWordOut          => clu_flaggedDataOut(i_clu)
           );
-      
+
+--      p_1clk_dealy: process (clk) is
+--      begin  -- process _1clk_dealy
+--       if rising_edge(clk) then
+--          
+--        end if; 
+--      end process p_1clk_dealy;
       
   end generate g_clusters;
 
@@ -116,55 +128,65 @@ begin  -- architecture arch_1
   -----------------------------------------------------------------------------
   -- compute cluster occupancy
   -----------------------------------------------------------------------------
-  bah <= clu_readyToCompute(current_clu);
+  
   -- FSM
   p_fsm: process (clk) is
-    variable state : fsm;
+    --variable state : fsm;
   begin  -- process process_fsm
     if rising_edge(clk) then
 
       case state is
         when fsm_testCluster =>
-          if clu_readyToCompute(current_clu) = '1' then
-            state := fsm_computing;
+          if clu_readyToCompute(to_integer(unsigned(current_clu))) = '1' then
+            state <= fsm_computing;
           else
-            state := fsm_testCluster; 
+            state <= fsm_testCluster; 
           end if;
         when fsm_computing =>
           if comp_computed = '1' then
-            state := fsm_computed;
+            state <= fsm_computed;
           else
-            state := state;
+            state <= state;
           end if;
         when fsm_computed =>
-            state := fsm_clean;
+            state <= fsm_clean;
         when fsm_clean =>
-          state := fsm_testCluster;
+          state <= fsm_testCluster;
       end case;
 
-      if rst = '0' or current_clu = nClusters-1 then
-        current_clu <= 0;
-      elsif state = fsm_testCluster then
-        current_clu <= current_clu + 1;
-      else
-        current_clu <= current_clu;
-      end if;
-
-      if state = fsm_clean then
-        comp_clean <= '1';
-      else
-        comp_clean <= '0';
-      end if;
-
-      if state = fsm_computing then
-        comp_compute <= '1';
-      else
-        comp_compute <= '0';
-      end if;
+--      if state = fsm_clean then
+--        comp_clean <= '1';
+--      else
+--        comp_clean <= '0';
+--      end if;
+--
+--      if state = fsm_computing then
+--        comp_compute <= '1';
+--      else
+--        comp_compute <= '0';
+--      end if;
       
     end if;
   end process p_fsm;
 
+  p_increment_current_clu: process (clk) is
+  begin  -- process p_increment_current_clu
+    if rising_edge(clk) then
+
+      if rst = '0' or to_integer(unsigned(current_clu)) = nClusters-1 then
+        current_clu <= (others => '0');
+      elsif state = fsm_testCluster and clu_readyToCompute(to_integer(unsigned(current_clu))) = '0' then
+        current_clu <= std_logic_vector(to_signed(to_integer(unsigned(current_clu)) + 1, 6));
+      else
+        current_clu <= current_clu;
+      end if;
+      
+    end if;
+  end process p_increment_current_clu;
+  
+  comp_clean <= '1' when state = fsm_clean else '0';
+  comp_compute <= '1' when state = fsm_computing else '0';
+  
 --  -- increment the cluster selector
 --  p_clusterSelector: process (clk, rst) is
 --  begin  -- process p_clusterSelector
@@ -182,7 +204,7 @@ begin  -- architecture arch_1
   -- Computing engine
 --  comp_clean <= '1' when state = fsm_clean else '0';
 --  comp_compute <= '1' when state = fsm_computing else '0';
-  comp_occupancyMap <= clu_occupancy(current_clu);
+  comp_occupancyMap <= clu_occupancy(to_integer(unsigned(current_clu)));
   
   e_computeClu : entity work.computeClu
     generic map (
