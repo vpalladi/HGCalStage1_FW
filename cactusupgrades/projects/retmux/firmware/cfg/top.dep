@@ -1,0 +1,24 @@
+# MP7 defaults
+include -c boards/mp7/base_fw/mp7xe_690
+src -c boards/mp7/base_fw/common mp7_top_decl.vhd
+src -c boards/mp7/base_fw/mp7xe_690 mp7_brd_decl.vhd
+src -c components/mp7_ttc mp7_ttc_decl.vhd
+
+# Override the defaults for higher performance
+setup calol2.tcl
+
+# Define a payload constraint
+src ../ucf/mp7_payload.tcl
+
+# Address table for IPbus in the payload region
+#addrtab -t -c projects/calol2/MainProcessor mp7_payload.xml
+
+# Add any VHD files in the hdl directory
+src *.vhd
+
+# Add any XCI files in the hdl/../cgn/* directories
+src ../cgn/*/*.xci
+
+# Add any ram initialization files
+src ../HexROMs/*.mif
+

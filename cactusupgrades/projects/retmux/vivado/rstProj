@@ -1,0 +1,6 @@
+rm -rf top
+rm -f vivado*
+rm -r ./.top
+rm -r ./.Xil
+rm -f compile_simlib.log compile_simlib.log.bak modelsim.ini modelsim.ini.bak
+
