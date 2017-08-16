@@ -1,0 +1,6 @@
+/../../../boards/mp7/base_fw/common/firmware/ucf/mp7_mgt.tcl
+/../../../boards/mp7/base_fw/common/firmware/ucf/area_constraints.tcl
+/../../../boards/mp7/base_fw/common/firmware/ucf/clock_constraints.tcl
+/../../../boards/mp7/base_fw/common/firmware/ucf/pins_xe.tcl
+/../../../boards/mp7/base_fw/common/firmware/ucf/pins.tcl
+/../../../boards/mp7/base_fw/common/firmware/ucf/impl_settings.tcl

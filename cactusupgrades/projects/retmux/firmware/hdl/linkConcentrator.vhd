@@ -80,7 +80,7 @@ begin
   dataOut <= ram_doutb;
   bxAlmostEnd   <= bx_end_internal;
   bxEnd   <= bx_end_internal_2;
-  dataValid <= '1' when state_2 = fsm_sending or state_1 = fsm_sending_first_event or bx_end_internal_2 = '1' else '0';
+  dataValid <= '1' when state_1 = fsm_sending or state_1 = fsm_sending_first_event or bx_end_internal_2 = '1' else '0';
   
   p_readyToSend : process (rclk) is
     variable words_cnt : integer := 0;
@@ -232,8 +232,8 @@ begin
     if rising_edge(rclk) then
 
       -- !!!needed!!! improve the handling over the end of the memory
-      if state = fsm_sending or state = fsm_sending_first_event then  --
-        ram_addrb <= std_logic_vector(to_unsigned((to_integer(unsigned(ram_addrb)) + 1), 12));
+      if state_1 = fsm_sending or state = fsm_sending or state_1 = fsm_sending_first_event or state = fsm_sending_first_event then  --
+        ram_addrb <= std_logic_vector( to_unsigned( (to_integer(unsigned(ram_addrb)) + 1 ), 12) );
       end if;
 
     end if;

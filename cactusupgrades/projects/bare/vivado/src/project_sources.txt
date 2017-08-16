@@ -1,0 +1,10 @@
+/../firmware/hdl/top_decl.trunk.vhd
+/../firmware/hdl/mp7_payload.trunk.vhd
+/../firmware/hdl/top.vhd
+/../firmware/hdl/common/FunkyMiniBus.vhd
+/../firmware/hdl/common/GenPromClocked.vhd
+/../firmware/hdl/common/GenRegister.vhd
+/../firmware/hdl/common/GenRomClocked.vhd
+/../firmware/hdl/common/IPbusToFunkyMiniBus.vhd
+/../firmware/hdl/IO/MP7CaptureFileReader.vhd
+/../firmware/hdl/IO/MP7CaptureFileWriter.vhd

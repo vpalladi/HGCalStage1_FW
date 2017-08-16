@@ -58,11 +58,13 @@ architecture behavioral of MainProcessorTop is
   
 begin
 
+--  linksOut <= linksIn;
+  
   -----------------------------------------------------------------------------
   -- generate all the links
   -----------------------------------------------------------------------------
   g_links : for i_link in nLinks-1 downto 0 generate
-  
+
     e_link: entity work.Link
 --    e_link: entity work.Link_test
       generic map (

@@ -1,0 +1,7 @@
+/../firmware/ip/sdpram_32x9_16x10/sdpram_32x9_16x10.xci
+/../firmware/ip/fifo_generator_0/fifo_generator_0.xci
+/../firmware/ip/virtex7_rx_buf/virtex7_rx_buf.xci
+/../firmware/ip/zs_fifo_8k_x_36b/zs_fifo_8k_x_36b.xci
+/../firmware/ip/sdpram_16x10_32x9/sdpram_16x10_32x9.xci
+/../firmware/ip/dist_mem_gen_0/dist_mem_gen_0.xci
+/../firmware/ip/amc13_link_gth/amc13_link_gth.xci

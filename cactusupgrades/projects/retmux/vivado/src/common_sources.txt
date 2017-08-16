@@ -2,9 +2,9 @@
 /../../../boards/mp7/base_fw/mp7xe_690/firmware/hdl/mp7_brd_decl.vhd
 /../../../boards/mp7/base_fw/common/firmware/hdl/mp7_top_decl.vhd
 /../../../components/mp7_links/firmware/gen_hdl/xilinx_gth_16b_3g_cpll/xilinx_gth_16b_3g_cpll_sync_block.vhd
-/../../../components/ipbus_eth/firmware/gen_hdl/gtwizard_v2_5_gbe_gth/gtwizard_v2_5_gbe_gth/example_design/gtwizard_v2_5_gbe_gth_sync_block.vhd
 /../../../components/mp7_links/firmware/hdl/crc/fletcher64/mod_adder_dsp.vhd
 /../../../components/mp7_links/firmware/gen_hdl/xilinx_gth_16b_3g_cpll/xilinx_gth_16b_3g_cpll_gtrxreset_seq.vhd
+/../../../components/ipbus_eth/firmware/gen_hdl/gtwizard_v2_5_gbe_gth/gtwizard_v2_5_gbe_gth/example_design/gtwizard_v2_5_gbe_gth_sync_block.vhd
 /../../../components/ipbus_eth/firmware/gen_hdl/gtwizard_v2_5_gbe_gth/gtwizard_v2_5_gbe_gth/example_design/gtwizard_v2_5_gbe_gth_gtrxreset_seq.vhd
 /../../../components/ipbus_core/firmware/hdl/ipbus_package.vhd
 /../../../components/ipbus_slaves/firmware/hdl/ipbus_reg_types.vhd

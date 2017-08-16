@@ -1,0 +1,10 @@
+/../../../projects/bare/firmware/hdl/top_decl.trunk.vhd
+/../../../projects/bare/firmware/hdl/mp7_payload.trunk.vhd
+/../../../projects/bare/firmware/hdl/top.vhd
+/../../../projects/bare/firmware/hdl/common/FunkyMiniBus.vhd
+/../../../projects/bare/firmware/hdl/common/GenPromClocked.vhd
+/../../../projects/bare/firmware/hdl/common/GenRegister.vhd
+/../../../projects/bare/firmware/hdl/common/GenRomClocked.vhd
+/../../../projects/bare/firmware/hdl/common/IPbusToFunkyMiniBus.vhd
+/../../../projects/bare/firmware/hdl/IO/MP7CaptureFileReader.vhd
+/../../../projects/bare/firmware/hdl/IO/MP7CaptureFileWriter.vhd

@@ -47,35 +47,33 @@ architecture behavioral of MainProcessorTop is
 
   
 begin
-
-
-  
---  linksOut <= linksIn;
+ 
+  linksOut <= linksIn;
   
   -----------------------------------------------------------------------------
   -- generate all the links
   -----------------------------------------------------------------------------
-  p_reset: process (clk) is
-  begin  -- process p_reset
-    if rising_edge(clk) then
-      cnt_rst <= cnt_rst + 1;
-    end if;
-
-    if cnt_rst > 10 then
-      rst <= '0';
-    end if;
-  end process p_reset;
+--  p_reset: process (clk) is
+--  begin  -- process p_reset
+--    if rising_edge(clk) then
+--      cnt_rst <= cnt_rst + 1;
+--    end if;
+--
+--    if cnt_rst > 10 then
+--      rst <= '0';
+--    end if;
+--  end process p_reset;
   
-  e_retmux: entity work.retmux
-    generic map (
-      tmux => 18
-      )
-    port map (
-      rst      => rst,
-      link_clk => clk,
-      clk      => clk,
-      linksIn  => linksIn,
-      linksOut => linksOut
-      );
+--  e_retmux: entity work.retmux
+--    generic map (
+--      tmux => 18
+--      )
+--    port map (
+--      rst      => rst,
+--      link_clk => clk,
+--      clk      => clk,
+--      linksIn  => linksIn,
+--      linksOut => linksOut
+--      );
   
 end architecture behavioral;
